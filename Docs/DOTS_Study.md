@@ -21,10 +21,10 @@
 | | |
 |---|---|
 | **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08) |
-| **지금** | **5단계 — 구조적 변경, ECB, Enableable 컴포넌트.** 과제 명세(5.1, 5.2절)는 전달했다. **사용자가 코드를 쓰기 시작했다** (2026-10-08): `Scripts/Step05/` 에 `Life`, `Alive`(`IEnableableComponent`), `LifeAuthoring`, `LifeJob`, `LifeSystem` 이 있고 컴파일은 통과한다. **아직 리뷰하지 않았다** — `LifeJob`, `LifeSystem` 은 읽지 않았다. 미결정: 수명을 **어디서 랜덤으로 줄지**(다시 만들 때마다 / 초기값도 / 새 스포너). 사용자가 머리가 안 돌아간다며 이 지점에서 멈췄다 |
-| **다음 행동** | **새로 시작할 때는 설명을 짧게, 한 번에 하나만.** ① `LifeJob.cs`, `LifeSystem.cs` 를 먼저 읽고 지금 어떤 방식(A/B)을 쓰고 있는지 확인한다 ② 수명 랜덤 위치를 사용자와 정한다 (4단계 7번과 연결: B 의 Job 안에서는 엔티티마다 따로 `Random` 을 만든다) ③ A 방식(ECB 로 Destroy/Instantiate) 이 아직 없으면 그것부터. `LifeAuthoring` 의 네임스페이스가 `Step02` 로 잘못돼 있었고, A 프리팹에도 `Alive` 가 붙는 것이 의도인지 확인이 필요하다 |
-| **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다 |
-| **확인할 것** | 4단계 7번(`Random` 을 병렬 잡에서 쓰면 생기는 문제)은 처음 답이 틀렸고 설명만 들은 상태다. 5단계 시작할 때 **자기 말로 다시** 설명하게 한다 |
+| **지금** | **5단계 — 구조적 변경, ECB, Enableable 컴포넌트.** **A·B 두 방식의 코드가 모두 동작한다** (2026-10-12, 사용자가 눈으로 확인). 컴파일 통과. **측정과 확인 질문은 시작하지 않았다.** 파일(`Scripts/Step05/`): 공통 `Life`(`Elapsed`/`MaxLifeTime`/`WaitTime`/`WaitElapsed`) · B: `Alive`, `LifeAuthoring`, `LifeJob`(죽이기), `AliveJob`(되살리기), `LifeSystem` · A: `CubeA`(태그), `CubeAAuthoring`, `CubeASystem`. 프리팹: B `StudyCubeEnabled`, A `StudyCubeEnabledA`. 씬: `Step05A`/`Step05B` 모두 2단계 스포너 Count 10000, Range 50, Seed 1. 진행 경위는 5.3절의 "진행 중 기록" |
+| **다음 행동** | **새로 시작할 때는 설명을 짧게, 한 번에 하나만.** ① `CubeASystem` 리뷰가 남아 있다 (2026-10-12 마지막 코드는 사용자에게 리뷰를 전하지 못하고 세션을 끝냈다). 볼 곳 둘: (a) `RefRW<Life> newLife = life;` 는 **복사가 아니다** — 포장지(주소)를 복사한 것이라 `newLife.ValueRW.Elapsed = …` 가 죽는 큐브의 원본을 고친다. 그 큐브가 곧 삭제되고 `newLife.ValueRO` 를 바로 읽어 ECB 에 넘기므로 **결과는 우연히 맞다.** 답을 주지 말고 "이 줄이 원본을 바꾸는가? 그런데 왜 동작하는가?" 로 묻는다 (같은 날 struct 복사에서 두 번 막혔다) (b) `Random.CreateFromIndex(spawner.Seed)` 는 시드가 매 프레임 같아 **프레임마다 같은 수열**이 나온다. B 의 `Seed`(`ElapsedTime * SeedMul`)와 같은 방식으로 바꾸게 한다 ② 답하지 않은 질문: "B 는 엔티티마다 `Random` 을 만들었는데 A 는 루프 밖 하나를 같이 써도 되는 이유" ③ 측정 전 조건 맞추기 — **B 프리팹 `WaitTime` 이 3, A 는 0 이다.** 이대로면 프레임당 죽고 태어나는 수가 약 3배 다르다 (B 주기 = 평균 수명 1.5 + 대기 3, A 주기 = 1.5. 계산이며 측정 아님). B 의 `WaitTime` 을 0 으로 두고 잴지 사용자와 정한다 ④ 측정 (5.2절) → 확인 질문 7개 |
+| **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다. **에디터 로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다** (2026-10-12 확인). CLAUDE.md 3.2절의 `AppData/Local/Unity/Editor/Editor.log` 는 갱신되지 않는 옛 파일이라 거기서 예외 0건이 나와도 믿으면 안 된다. CLAUDE.md 경로 수정은 사용자에게 물었고 아직 답을 받지 못했다 |
+| **확인할 것** | 4단계 7번(`Random` 을 병렬 잡에서 쓰면 생기는 문제)은 2026-10-12 에 **자기 말로 맞게 답했다** ("struct 라 랜덤값을 생성할 때마다 상태가 바뀌고, Job 필드에 하나를 만들면 동시에 읽고 바꿔서 계속 다른 결과가 나온다"). 해결됨. 그 전에 리마인드 직전의 답 "시드가 주어지지 않으면 생성 때마다 값이 달라져서" 는 틀렸다 (시드는 필수이고 같은 시드면 같은 수열이다) |
 | **본 작업** | M3 는 학습이 끝날 때까지 멈춤. 상태는 [WorkLog.md](WorkLog.md) 의 현재 위치 블록 참조 |
 
 ### Claude 가 지킬 진행 규칙 (사용자와 합의한 것, 2026-10-01)
@@ -783,3 +783,36 @@ Entities Graphics 는 우리가 만든 `Alive` 를 모른다. `Alive` 만 꺼도
 ### 5.3 결과 / 배운 것
 
 > 과제를 마치면 여기에 적는다. **측정 표를 반드시 포함한다** (방식 / ms / Count / CPU / Jobs 메뉴 상태).
+
+**진행 중 기록 (2026-10-12)** — 코드 작성까지. 측정·확인 질문은 아직이다. 단계를 마칠 때 이 내용을 아래 형식(작성 경위 / 틀렸다가 고친 것 / 확인 질문 답 / 비교)으로 정리한다.
+
+**작성 경위** — 10-08 에 `Life`, `Alive`, `LifeAuthoring` 과 빈 `LifeSystem` 까지 쓰고 멈췄다 (`LifeJob` 은 4단계 `ChaseJob` 을 복사해 둔 상태였다). 10-12 에 1~4단계를 짧게 되짚은 뒤 이어서 썼다. 순서는 B 를 메인 스레드 `foreach` 로 먼저 → `IJobEntity` 로 옮김 → 되살리기 Job → 랜덤 수명 → A.
+- 혼자 쓴 것: `Life`, `Alive`, `LifeAuthoring`, `CubeA`(태그), `CubeAAuthoring`, 대기 시간(`WaitTime`/`WaitElapsed`) 로직 전체, `AliveJob` 의 `[WithDisabled(typeof(Alive), typeof(MaterialMeshInfo))]`.
+- 문법 예시를 받은 것: `EnabledRefRW<T>` 를 `Query<>`·`Execute` 에서 받는 모양, `Execute(Entity entity, …)`, `Random.CreateFromIndex`, `math.hash(new uint2(a, b))`, `.WithEntityAccess()`, `ecb.SetComponent`.
+- 설계 결정 (사용자): 되살리기는 **대기 시간 뒤에**(즉시 아님). 랜덤은 **`Elapsed` 의 시작값**에 넣는다 (`0 ~ MaxLifeTime`, 필드 추가 없음). A 의 프리팹은 **2단계 `Spawner` 싱글턴에서 읽는다** (`CubeA` 는 태그). A 의 새 큐브는 **죽은 큐브의 `LocalTransform` 을 그대로** 받는다. 처음 스폰 때의 랜덤은 넣지 않았다 (첫 주기에만 다 같이 죽고 그 뒤로 흩어진다).
+
+**틀렸다가 고친 것**
+
+| 처음 쓴 것 | 왜 틀렸나 / 실행하면 | 고친 것 |
+|---|---|---|
+| `LifeSystem` 에서 `GetSingletonEntity<Alive>()` 로 엔티티를 꺼내 `Elapsed` 를 읽음 | 싱글턴은 월드에 **하나뿐인 것**을 꺼낸다. `Alive` 는 큐브 N개에 붙어 있어 예외가 난다. 3단계의 "하나뿐인 남의 데이터 = 싱글턴 / 여러 개 전부 = 쿼리" 구분을 다시 틀렸다 | `foreach` + `SystemAPI.Query<RefRW<Life>>()` |
+| `float remaining = GetComponent<Life>(e).Elapsed` | 값을 **복사**해 온 것이라 더해도 청크 안의 원본이 안 바뀐다 | `life.ValueRW.Elapsed += deltaTime` |
+| `Alive` 만 끄고 "큐브가 안 사라진다, 코드가 잘못됐나" | 코드는 맞았다. Entities Graphics 는 `Alive` 를 모른다. **확인 질문 3번을 직접 겪은 것** | `EnabledRefRW<MaterialMeshInfo>` 도 같이 끔 |
+| 루프 두 개 (더하기 / 비교해서 끄기), 두 번째 루프는 읽기만 하는데 `RefRW<Life>` | 같은 엔티티를 두 번 돈다. 첫 루프에 필터가 없어 죽은 큐브의 `Elapsed` 도 계속 늘었다 | 루프 하나로 합침 |
+| `Execute(ref Life life, ref MaterialMeshInfo rendering)` + `rendering = false` | `ref T` 는 컴포넌트 **안의 데이터**, `EnabledRefRW<T>` 는 **켜짐 비트**다. 메시 정보 struct 에 bool 을 넣으려 해 컴파일 에러. `Alive` 를 끄는 것도 빠져 있었다 | `EnabledRefRW<Alive>`, `EnabledRefRW<MaterialMeshInfo>` 두 개 |
+| `LifeJob.ScheduleParallel()` 다음 줄에서 `AliveJob.Run()` | **죽는 것은 되고 되살리기만 안 됐다.** 로그: `InvalidOperationException: The previously scheduled job LifeJob writes to the ComponentTypeHandle<…Life> … You are trying to schedule a new job AliveJob, which writes to the same … you must include LifeJob as a dependency` (매 프레임, 2,839건). 워커가 `Life` 에 쓰는 중인데 메인 스레드가 즉시 쓰려 해서 안전 검사가 막았다. 예외로 `OnUpdate` 가 그 줄에서 끝나 `AliveJob` 은 한 번도 돌지 않았다. 두 Job 이 만지는 엔티티는 겹치지 않지만 검사는 **타입 단위**다 (4단계 5a 와 같다) | 둘 다 `ScheduleParallel()` — `state.Dependency` 가 자동으로 줄을 세운다 |
+| `Random random = new((uint)entity.Index)` | 연속된 시드로 만든 `Random` 들은 첫 값이 서로 비슷하다. 인덱스 0 이면 시드 0 예외 | `Random.CreateFromIndex(…)` |
+| 랜덤 값을 `WaitElapsed` 에 넣음 | 틀린 건 아니다. 수명은 전부 같고 대기 시간만 달라진다. A 에도 대기 로직이 필요해져서 수명 쪽으로 바꿨다 | `Elapsed = random.NextFloat(0, MaxLifeTime)`, `WaitElapsed = 0` |
+| "시드를 엔티티마다 반복문으로 줘야 하나?" | Job 필드는 그 프레임에 **모든 엔티티가 같이 보는 값**이다 (`DeltaTime` 과 같다). 엔티티마다 다른 부분은 `entity.Index` 가 맡는다 | `Seed = (uint)(ElapsedTime * SeedMul)` 을 한 번 넘기고 `math.hash(new uint2(index, Seed))` |
+| `CubeA { Entity Prefab }` 을 만들고 Authoring 을 어디에 붙일지 못 정함 | 한 컴포넌트에 "A 큐브 표시(큐브마다)" 와 "복제할 프리팹(씬에 하나)" 두 역할이 섞였다 | `CubeA` 는 태그, 프리팹은 `Spawner` 싱글턴에서 |
+| `state.EntityManager.SetComponentData(newEntity, new CubeA())` 와 `Life` | ① `ecb.Instantiate` 가 준 엔티티는 **아직 없는 번호표**라 `EntityManager` 로 즉시 쓸 수 없다. 같은 ECB 에 기록해야 한다 ② `CubeA`·`Life` 는 프리팹에 이미 있어 복제본이 갖고 태어난다. 태그는 쓸 값도 없다 (2단계 "추가해야 하나?" 와 같다) | `ecb.SetComponent(newEntity, …)`, `CubeA` 줄은 삭제 |
+
+**관찰한 것**
+- A 에서 값을 아무것도 안 쓰고 `Instantiate` 만 하면 **전부 한 점(프리팹 위치)에 생기고 다 같이 죽는다.** 새로 만든 엔티티는 위치·회전 속도·수명이 전부 프리팹 값으로 돌아간다. B 는 끄고 켤 뿐이라 값이 남아 있다.
+- A 는 죽으면 Entities Hierarchy 에서 **엔티티가 없어지고**, B 는 꺼진 채 남는다.
+
+**가장 오래 막힌 곳 — ECB 와 struct 복사.** "`ecb.DestroyEntity` 다음 줄에서 `transform.ValueRO` 를 어떻게 읽나, 삭제하면 transform 이 사라진다면서?" 를 세 번 되물었다. "주소와 사본" 비유는 통하지 않았고, **위치 (3, 5) 인 큐브 하나를 줄 단위로 따라간 표**에서 풀렸다. 정리한 말: "반복문이 끝나기 전까지는 삭제가 적용되지 않고, 수정되는 건 루프가 끝난 뒤 프레임 끝이다. ECB 에는 그때 읽은 값이 적혀 있다." (정밀하게는 프레임 끝이 아니라 `EndSimulationEntityCommandBufferSystem` 이 재생할 때 — 렌더링 전이다.)
+
+**Claude 의 안내 오류**
+- A 의 공통 부분이라며 메인 스레드 `foreach` 로 시작시켜 놓고, 내용이 B 로 넘어간 뒤에도 Job 으로 옮기자는 말을 하지 않았다. 사용자가 "B 는 Job 으로 분리하는 것 아니었나" 고 물어서 바로잡았다.
+- "에디터 로그 예외 0건" 을 두 번 말했는데 **갱신되지 않는 옛 로그 파일**을 읽은 것이었다. 실제 로그는 `Logs/Editor.log`.

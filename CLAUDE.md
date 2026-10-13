@@ -147,10 +147,16 @@ Claude는 Unity 배치모드 CLI로 **컴파일과 테스트를 직접 검증한
 컴파일이 통과해도 플레이 중 예외가 날 수 있다. 사용자가 "콘솔에 에러가 난다"고 하면 에디터 로그를 직접 읽는다.
 
 ```bash
-L="/c/Users/Admin/AppData/Local/Unity/Editor/Editor.log"
-grep -c "Exception" "$L"                      # 건수
-grep -a "Exception" "$L" | sort -u | head     # 종류
+L="Logs/Editor.log"                            # 프로젝트 루트 기준
+ls -la --time-style=long-iso "$L"             # 수정 시각이 방금인지 먼저 확인한다
+grep -ac "Exception" "$L"                     # 건수
+grep -a "Exception:" "$L" | cut -c1-200 | sort | uniq -c | sort -rn | head   # 종류와 횟수
 ```
+
+**로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다.** Unity 6 은 부팅 초기에 로그를 이쪽으로 옮긴다.
+`AppData/Local/Unity/Editor/Editor.log` 는 그 뒤로 갱신되지 않는 파일이라, 거기서 "예외 0건" 이 나와도 아무 뜻이 없다
+(2026-10-12 에 실제로 그렇게 잘못 보고했다. 그때 프로젝트 쪽 로그에는 같은 예외가 2,839건 있었다).
+건수를 말하기 전에 **파일의 수정 시각**을 확인한다. 에디터를 다시 켜면 로그가 새로 시작되므로 이전 실행의 예외는 남아 있지 않다.
 
 스택 트레이스에서 **우리 코드의 파일:줄**을 찾는 게 핵심이다. 패키지 내부 프레임은 대부분 무시해도 된다.
 

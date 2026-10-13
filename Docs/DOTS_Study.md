@@ -9,7 +9,7 @@
 | 코드 위치 | `Assets/MyAssets/DOTS_Study/Scripts/StepXX/` |
 | 어셈블리 | `Survivors.Study` (게임 `Survivors.Runtime` 과 서로 참조하지 않음 — 폴더째 지워도 게임에 영향 없음) |
 | 네임스페이스 | `Assets.MyAssets.DOTS_Study.Scripts.StepXX` |
-| 씬 | `Assets/MyAssets/DOTS_Study/Scenes/StepXX.unity` (단계마다 하나) |
+| 씬 | `Assets/MyAssets/DOTS_Study/Scenes/StepXX/StepXX.unity` (단계마다 폴더 하나. 2026-10-13 에 사용자가 1~4단계 씬도 폴더로 옮겼다) |
 | 진행 방식 | 개념 → 과제 명세 → **직접 작성** → 리뷰 → 프로젝트 코드와 비교 |
 
 ---
@@ -21,10 +21,10 @@
 | | |
 |---|---|
 | **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08), 5단계 (2026-10-13) |
-| **지금** | **6단계 — 싱글턴과 시스템 간 통신.** 과제 명세(6.1, 6.2절)를 **노트에 써 두었고 사용자에게는 아직 설명하지 않았다** (2026-10-13 에 5단계를 마치며 작성). `Scripts/Step06/` 은 아직 없다. 5단계 코드는 `Scripts/Step05/` 에 그대로 있다 (B 프리팹 `StudyCubeEnabledB` 의 `WaitTime` 은 측정용으로 0 으로 바꾼 상태다) |
-| **다음 행동** | **설명은 짧게, 한 번에 하나만. 추상적인 말(주소, 비트)보다 큐브 하나의 값을 줄 단위로 따라가는 표·그림이 통한다** (5.3절 "배운 것"). ① 6.1절 개념을 사용자와 같이 읽고 6.2절 과제를 전달한다. 과제는 **입력 싱글턴부터** 시작한다 (가장 작은 조각: 싱글턴 컴포넌트 하나 + 그것을 쓰는 `SystemBase`) ② `GetSingleton` 이 돌려주는 것이 **복사본**이라는 점에서 다시 막힐 가능성이 높다 — 5단계에서 같은 지점에 세 번 막혔다. 막히면 값 하나를 따라가는 표로 설명한다 ③ 5단계에서 남긴 것: 확인 질문 2번(아키타입·청크 수)은 **직접 확인하지 않았다**, 7번은 설명만 들었다. 다시 할 필요는 없다 (사용자와 범위를 줄이기로 정했다) |
-| **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다. **에디터 로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다** (2026-10-12 확인). CLAUDE.md 3.2절의 `AppData/Local/Unity/Editor/Editor.log` 는 갱신되지 않는 옛 파일이라 거기서 예외 0건이 나와도 믿으면 안 된다. CLAUDE.md 경로 수정은 사용자에게 물었고 아직 답을 받지 못했다 |
-| **확인할 것** | 6단계를 시작할 때 한 줄로 물어 본다: "`RefRW<Life> a = life;` 와 `Life a = life.ValueRO;` 는 무엇이 다른가" (5단계에서 처음 답이 틀렸다). 4단계 7번(`Random`)은 2026-10-12 에 자기 말로 맞게 답해 해결됐다 |
+| **지금** | **6단계 — 싱글턴과 시스템 간 통신.** 2026-10-13 에 시작했다. **입력 분리는 끝났다** (`Step06StudyInputState` 싱글턴 + `Step06StudyInputSystem`(`SystemBase`) → `Step06PlayerMoveSystem`(`ISystem` + Burst), 동작 확인). **데미지 이벤트는 중간이다**: `Step06Health`, 표적 Authoring·프리팹(`StudyCubeTarget`, Max Hp 3), `DamageEvent`(`IBufferElementData`, `Target`/`Amount`), 목록을 만드는 `DamageSystem`(`CreateSingletonBuffer`), 플레이어의 `Step06PlayerAttack`(`Range`/`SecondPerDamage`) 까지 있다. `DamageSystem.OnUpdate` 는 플레이어 위치를 읽고 표적을 도는 `foreach` 까지 썼고 **`events.Add` 줄은 주석 상태**다. 컴파일 통과. 씬 `Scenes/Step06/Step06.unity`: 플레이어 1 + 2단계 스포너 Count 100, Range 15. 표적은 **움직이지 않는다** (추격 시스템을 다시 쓰지 않기로 사용자가 정했다). 5단계 커밋 `6d6dff9` 이후는 미커밋. 경위는 6.3절 "진행 중 기록" |
+| **다음 행동** | **설명은 짧게, 한 번에 하나만. 추상적인 말보다 값 하나를 줄 단위로 따라가는 표·그림이 통한다.** 막막해하면 "기존 파일 X 를 옆에 열고 세 군데만 바꾼다" 처럼 빈칸 있는 뼈대를 준다 (6단계 첫걸음에서 이렇게 풀렸다). ① `DamageSystem` 을 읽고 이어간다. **지금 한 시스템이 목록을 만들고(소유) 피해도 적으려 한다** — 과제는 만들기/적용/사망 **세 시스템**이다. 답을 주지 말고 "이 시스템은 적는 쪽인가 적용하는 쪽인가" 를 묻고 나누게 한다 ② `DamageSystem` 에 `RequireForUpdate` 가 없어 **플레이어가 없는 씬에서 `GetSingletonEntity<Step06PlayerTag>()` 가 매 프레임 예외를 낸다** (예: `Step05B` 를 Play 하면). 1단계 질문 5번과 연결해 묻는다 ③ `events.Add` 를 채우고 거리 비교(`math.distancesq`)와 `Amount` 계산을 쓴다. `Step06PlayerAttack.SecondPerDamage` 는 이름이 "초당 피해량" 인지 "피해 간격(초)" 인지 모호하다 — 어느 뜻인지 묻는다 ④ **목록을 비우지 않은 채 Play 해서 길이가 계속 늘어나는 것을 직접 보게 한다** (확인 질문 2번) ⑤ 적용 시스템(`GetComponentRW<Step06Health>(target)`, 목록 `Clear`) → 사망 시스템(`Alive`·`MaterialMeshInfo` 끄기) → 확인 질문 6개 |
+| **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다. **에디터 로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다** (2026-10-12 확인). `AppData/Local/Unity/Editor/Editor.log` 는 갱신되지 않는 옛 파일이다. CLAUDE.md 3.2절의 경로는 2026-10-13 에 고쳤다 |
+| **확인할 것** | "`GetSingleton` 으로 받은 값을 바꾸면 싱글턴도 바뀌는가" 는 2026-10-13 에 **바로 맞게 답했다** ("얻어온 건 값이고 주소가 아니다"). `RefRW<Life> a = life;` 와 `Life a = life.ValueRO;` 의 차이는 물었지만 **답을 받지 못하고 넘어갔다** — 다시 물을 필요는 낮다 |
 | **본 작업** | M3 는 학습이 끝날 때까지 멈춤. 상태는 [WorkLog.md](WorkLog.md) 의 현재 위치 블록 참조 |
 
 ### Claude 가 지킬 진행 규칙 (사용자와 합의한 것, 2026-10-01)
@@ -53,7 +53,7 @@
 | 3 | 태그 컴포넌트, 쿼리 필터, 다른 엔티티 읽기, 시스템 순서, `SystemBase` | 플레이어 추격 | `EnemyChaseSystem`, `PlayerMoveSystem` | ✅ 2026-10-07 |
 | 4 | Job·Burst (`IJobEntity`, `ScheduleParallel`, 의존성) | 3단계를 병렬로, Profiler 비교 | ISSUE-006, `PlayerPosition` | ✅ 2026-10-08 |
 | 5 | 구조적 변경, ECB, Enableable 컴포넌트 | 생성·삭제 vs 풀링 | `Active`, `PoolUtility` | ✅ 2026-10-13 |
-| 6 | 싱글턴, 시스템 간 통신 | 입력 싱글턴, 데미지 이벤트 | `PlayerInputState`, `DamageEventBus`, `DamageApplySystem` | ⏳ 과제 전달 전 |
+| 6 | 싱글턴, 시스템 간 통신 | 입력 싱글턴, 데미지 이벤트 | `PlayerInputState`, `DamageEventBus`, `DamageApplySystem` | ⏳ 진행중 (입력 완료, 이벤트 중간) |
 | 7 | NativeContainer, 공간 해시 | 가까운 적 찾기 | `EnemySpatialHash` | ⬜ |
 
 ---
@@ -973,3 +973,34 @@ health.ValueRW.Current -= amount;
 ### 6.3 결과 / 배운 것
 
 > 과제를 마치면 여기에 적는다.
+
+**진행 중 기록 (2026-10-13)** — 5단계를 마친 날 이어서 시작했다. 입력 분리 완료, 데미지 이벤트는 목록에 적는 시스템을 쓰는 중.
+
+**작성 경위**
+- 과제를 받고 "어떻게 시작할지 모르겠다" 고 했다. 개념 설명과 확인 질문과 첫 과제를 한 번에 준 것이 과했다. **"`Life.cs` 를 옆에 열고 세 군데만 바꾼다"** 는 빈칸 뼈대를 주자 바로 썼다.
+- 혼자 쓴 것: `Step06StudyInputState`, `Step06PlayerTag`, `Step06PlayerAuthoring`, `Step06PlayerMoveSystem`(`[UpdateAfter]` 위치와 `typeof` 를 한 번에 맞혔다 — 3단계에서는 둘 다 틀렸다), `Step06Health`, 표적 Authoring, `DamageEvent`, `Step06PlayerAttack`.
+- 문법 예시를 받은 것: `EntityManager.CreateSingleton<T>()`, `SystemAPI.SetSingleton`, `SystemAPI.GetSingleton<T>().Move`, `CreateSingletonBuffer<T>()`, `SystemAPI.GetSingletonBuffer<T>()`, `events.Add`.
+- 설계 결정 (사용자): 표적은 **움직이지 않는 큐브**로 한다 (3·4단계 추격 시스템은 3단계 `PlayerTag` 를 찾아서 재사용할 수 없고, 다시 쓰는 것은 이번 주제가 아니다). 반경과 피해량은 **플레이어의 컴포넌트**(`Step06PlayerAttack`)로 둔다. 표적용 태그는 만들지 않는다 (`Step06Health` 를 가진 것이 표적이다).
+
+**틀렸다가 고친 것**
+
+| 처음 쓴 것 | 왜 틀렸나 / 실행하면 | 고친 것 |
+|---|---|---|
+| `SystemBase` 인 `StudyInputSystem` 의 클래스·`OnCreate`·`OnUpdate` 에 `[BurstCompile]` | 에러는 없지만 **아무 효과가 없다.** `Keyboard` 는 매니지드라 Burst 가 다루지 못하고 속성은 조용히 무시된다. "이 시스템은 Burst 가 안 되는 쪽이라 일부러 작게 떼어 냈다" 는 요점을 가린다 | 세 군데 삭제 |
+| 키보드가 없으면 그냥 `return` | `SetSingleton` 까지 못 가서 **마지막으로 쓴 값이 싱글턴에 남는다.** 3단계에서는 `return` 하면 그 프레임에 이동도 안 했으니 동작이 달라진 지점이다 (Claude 가 "생각해 볼 것" 으로 짚었고 사용자가 고쳤다) | `return` 전에 (0, 0) 을 써 넣음 |
+| 표적 Authoring 의 네임스페이스가 `Step03`, 안 쓰는 `_moveSpeed` 필드 | 다른 파일을 복사해 시작해서 남았다. 5단계 `LifeAuthoring` 의 `Step02` 와 같은 실수다. 컴파일은 통과한다 | `Step06`, 필드 삭제 |
+| `DamageEvent { Entity Entity; float amount; }` | 틀린 건 아니다. 필드 이름이 타입 이름과 같아 역할이 안 보였고, public 필드가 소문자였다 | `Target`, `Amount` |
+| 이동 시스템 이름 `StudyReadInputSystem` | 하는 일(플레이어를 옮긴다)이 아니라 수단(입력을 읽는다)이 이름이었다 | `Step06PlayerMoveSystem` |
+
+**확인한 것**
+- 플레이어가 없는 `Step05B` 씬에서도 `StudyInputState` 엔티티가 생기고 W/A/S/D 에 따라 `Move` 가 (1, 0), (0, 1), 약 (0.71, 0.71) 로 바뀐다. **쿼리 없이 일하는 시스템은 엉뚱한 씬에서도 돈다** (1단계 질문 5번)를 직접 만든 사례다.
+- `Step06` 씬에서 W/A/S/D 로 플레이어가 움직인다. 이동 시스템에 `Keyboard` 와 `using UnityEngine.InputSystem` 이 없다.
+- 표적 100개가 깔리고 Inspector 에 `Step06Health` 가 3 / 3 으로 보인다. 목록 엔티티가 길이 0 으로 생긴다.
+
+**확인 질문 (과제 중에 물은 것)**
+
+| 질문 | 답 | 판정 |
+|---|---|---|
+| `float2 moveDir = GetSingleton<…>().Move;` 아래에서 `moveDir = float2.zero;` 하면 싱글턴도 0 이 되는가 | "변하지 않는다. `GetSingleton` 으로 얻어온 건 값이고 주소가 아니라서 `moveDir` 에 0 이 대입될 뿐이다" | ✅ 5단계에서 세 번 막힌 지점을 바로 맞혔다 |
+
+**남은 문제 (다음 세션에서 사용자와 같이 본다)** — 위 📍 현재 위치의 "다음 행동" ①~③.

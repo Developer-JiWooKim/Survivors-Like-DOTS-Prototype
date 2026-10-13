@@ -16,6 +16,9 @@
 # They also could contain extremely sensitive data
 /[Mm]emoryCaptures/
 
+# Profiler 에서 Save 한 캡처(.data 등). 파일 하나가 수백 MB 다
+/[Pp]rofilerCaptures/
+
 # Recordings can get excessive in size
 /[Rr]ecordings/
 

@@ -20,11 +20,11 @@
 
 | | |
 |---|---|
-| **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08) |
-| **지금** | **5단계 — 구조적 변경, ECB, Enableable 컴포넌트.** **A·B 두 방식의 코드가 모두 동작한다** (2026-10-12, 사용자가 눈으로 확인). 컴파일 통과. **측정과 확인 질문은 시작하지 않았다.** 파일(`Scripts/Step05/`): 공통 `Life`(`Elapsed`/`MaxLifeTime`/`WaitTime`/`WaitElapsed`) · B: `Alive`, `LifeAuthoring`, `LifeJob`(죽이기), `AliveJob`(되살리기), `LifeSystem` · A: `CubeA`(태그), `CubeAAuthoring`, `CubeASystem`. 프리팹: B `StudyCubeEnabled`, A `StudyCubeEnabledA`. 씬: `Step05A`/`Step05B` 모두 2단계 스포너 Count 10000, Range 50, Seed 1. 진행 경위는 5.3절의 "진행 중 기록" |
-| **다음 행동** | **새로 시작할 때는 설명을 짧게, 한 번에 하나만.** ① `CubeASystem` 리뷰가 남아 있다 (2026-10-12 마지막 코드는 사용자에게 리뷰를 전하지 못하고 세션을 끝냈다). 볼 곳 둘: (a) `RefRW<Life> newLife = life;` 는 **복사가 아니다** — 포장지(주소)를 복사한 것이라 `newLife.ValueRW.Elapsed = …` 가 죽는 큐브의 원본을 고친다. 그 큐브가 곧 삭제되고 `newLife.ValueRO` 를 바로 읽어 ECB 에 넘기므로 **결과는 우연히 맞다.** 답을 주지 말고 "이 줄이 원본을 바꾸는가? 그런데 왜 동작하는가?" 로 묻는다 (같은 날 struct 복사에서 두 번 막혔다) (b) `Random.CreateFromIndex(spawner.Seed)` 는 시드가 매 프레임 같아 **프레임마다 같은 수열**이 나온다. B 의 `Seed`(`ElapsedTime * SeedMul`)와 같은 방식으로 바꾸게 한다 ② 답하지 않은 질문: "B 는 엔티티마다 `Random` 을 만들었는데 A 는 루프 밖 하나를 같이 써도 되는 이유" ③ 측정 전 조건 맞추기 — **B 프리팹 `WaitTime` 이 3, A 는 0 이다.** 이대로면 프레임당 죽고 태어나는 수가 약 3배 다르다 (B 주기 = 평균 수명 1.5 + 대기 3, A 주기 = 1.5. 계산이며 측정 아님). B 의 `WaitTime` 을 0 으로 두고 잴지 사용자와 정한다 ④ 측정 (5.2절) → 확인 질문 7개 |
+| **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08), 5단계 (2026-10-13) |
+| **지금** | **6단계 — 싱글턴과 시스템 간 통신.** 과제 명세(6.1, 6.2절)를 **노트에 써 두었고 사용자에게는 아직 설명하지 않았다** (2026-10-13 에 5단계를 마치며 작성). `Scripts/Step06/` 은 아직 없다. 5단계 코드는 `Scripts/Step05/` 에 그대로 있다 (B 프리팹 `StudyCubeEnabledB` 의 `WaitTime` 은 측정용으로 0 으로 바꾼 상태다) |
+| **다음 행동** | **설명은 짧게, 한 번에 하나만. 추상적인 말(주소, 비트)보다 큐브 하나의 값을 줄 단위로 따라가는 표·그림이 통한다** (5.3절 "배운 것"). ① 6.1절 개념을 사용자와 같이 읽고 6.2절 과제를 전달한다. 과제는 **입력 싱글턴부터** 시작한다 (가장 작은 조각: 싱글턴 컴포넌트 하나 + 그것을 쓰는 `SystemBase`) ② `GetSingleton` 이 돌려주는 것이 **복사본**이라는 점에서 다시 막힐 가능성이 높다 — 5단계에서 같은 지점에 세 번 막혔다. 막히면 값 하나를 따라가는 표로 설명한다 ③ 5단계에서 남긴 것: 확인 질문 2번(아키타입·청크 수)은 **직접 확인하지 않았다**, 7번은 설명만 들었다. 다시 할 필요는 없다 (사용자와 범위를 줄이기로 정했다) |
 | **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다. **에디터 로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다** (2026-10-12 확인). CLAUDE.md 3.2절의 `AppData/Local/Unity/Editor/Editor.log` 는 갱신되지 않는 옛 파일이라 거기서 예외 0건이 나와도 믿으면 안 된다. CLAUDE.md 경로 수정은 사용자에게 물었고 아직 답을 받지 못했다 |
-| **확인할 것** | 4단계 7번(`Random` 을 병렬 잡에서 쓰면 생기는 문제)은 2026-10-12 에 **자기 말로 맞게 답했다** ("struct 라 랜덤값을 생성할 때마다 상태가 바뀌고, Job 필드에 하나를 만들면 동시에 읽고 바꿔서 계속 다른 결과가 나온다"). 해결됨. 그 전에 리마인드 직전의 답 "시드가 주어지지 않으면 생성 때마다 값이 달라져서" 는 틀렸다 (시드는 필수이고 같은 시드면 같은 수열이다) |
+| **확인할 것** | 6단계를 시작할 때 한 줄로 물어 본다: "`RefRW<Life> a = life;` 와 `Life a = life.ValueRO;` 는 무엇이 다른가" (5단계에서 처음 답이 틀렸다). 4단계 7번(`Random`)은 2026-10-12 에 자기 말로 맞게 답해 해결됐다 |
 | **본 작업** | M3 는 학습이 끝날 때까지 멈춤. 상태는 [WorkLog.md](WorkLog.md) 의 현재 위치 블록 참조 |
 
 ### Claude 가 지킬 진행 규칙 (사용자와 합의한 것, 2026-10-01)
@@ -52,8 +52,8 @@
 | 2 | Baking 심화, 프리팹 엔티티, Instantiate | N개 스포너 | `EnemyAuthoring`, `EnemySpawnerAuthoring` | ✅ 2026-10-02 |
 | 3 | 태그 컴포넌트, 쿼리 필터, 다른 엔티티 읽기, 시스템 순서, `SystemBase` | 플레이어 추격 | `EnemyChaseSystem`, `PlayerMoveSystem` | ✅ 2026-10-07 |
 | 4 | Job·Burst (`IJobEntity`, `ScheduleParallel`, 의존성) | 3단계를 병렬로, Profiler 비교 | ISSUE-006, `PlayerPosition` | ✅ 2026-10-08 |
-| 5 | 구조적 변경, ECB, Enableable 컴포넌트 | 생성·삭제 vs 풀링 | `Active`, `PoolUtility` | ⏳ 진행중 |
-| 6 | 싱글턴, 시스템 간 통신 | 데미지 이벤트 | `DamageEventBus`, `TerrainGrid` | ⬜ |
+| 5 | 구조적 변경, ECB, Enableable 컴포넌트 | 생성·삭제 vs 풀링 | `Active`, `PoolUtility` | ✅ 2026-10-13 |
+| 6 | 싱글턴, 시스템 간 통신 | 입력 싱글턴, 데미지 이벤트 | `PlayerInputState`, `DamageEventBus`, `DamageApplySystem` | ⏳ 과제 전달 전 |
 | 7 | NativeContainer, 공간 해시 | 가까운 적 찾기 | `EnemySpatialHash` | ⬜ |
 
 ---
@@ -782,9 +782,9 @@ Entities Graphics 는 우리가 만든 `Alive` 를 모른다. `Alive` 만 꺼도
 
 ### 5.3 결과 / 배운 것
 
-> 과제를 마치면 여기에 적는다. **측정 표를 반드시 포함한다** (방식 / ms / Count / CPU / Jobs 메뉴 상태).
+**완료: 2026-10-13.** 코드는 10-12 와 10-13, 측정과 확인 질문은 10-13 에 마쳤다. A·B 두 방식 모두 큐브가 죽었다 되살아나는 것을 눈으로 확인했고, Count 10,000 에서 두 방식을 재서 표로 남겼다.
 
-**진행 중 기록 (2026-10-12)** — 코드 작성까지. 측정·확인 질문은 아직이다. 단계를 마칠 때 이 내용을 아래 형식(작성 경위 / 틀렸다가 고친 것 / 확인 질문 답 / 비교)으로 정리한다.
+**첫날 기록 (2026-10-12)** — B 방식 전체와 A 방식의 동작까지.
 
 **작성 경위** — 10-08 에 `Life`, `Alive`, `LifeAuthoring` 과 빈 `LifeSystem` 까지 쓰고 멈췄다 (`LifeJob` 은 4단계 `ChaseJob` 을 복사해 둔 상태였다). 10-12 에 1~4단계를 짧게 되짚은 뒤 이어서 썼다. 순서는 B 를 메인 스레드 `foreach` 로 먼저 → `IJobEntity` 로 옮김 → 되살리기 Job → 랜덤 수명 → A.
 - 혼자 쓴 것: `Life`, `Alive`, `LifeAuthoring`, `CubeA`(태그), `CubeAAuthoring`, 대기 시간(`WaitTime`/`WaitElapsed`) 로직 전체, `AliveJob` 의 `[WithDisabled(typeof(Alive), typeof(MaterialMeshInfo))]`.
@@ -816,3 +816,160 @@ Entities Graphics 는 우리가 만든 `Alive` 를 모른다. `Alive` 만 꺼도
 **Claude 의 안내 오류**
 - A 의 공통 부분이라며 메인 스레드 `foreach` 로 시작시켜 놓고, 내용이 B 로 넘어간 뒤에도 Job 으로 옮기자는 말을 하지 않았다. 사용자가 "B 는 Job 으로 분리하는 것 아니었나" 고 물어서 바로잡았다.
 - "에디터 로그 예외 0건" 을 두 번 말했는데 **갱신되지 않는 옛 로그 파일**을 읽은 것이었다. 실제 로그는 `Logs/Editor.log`.
+
+**측정 (2026-10-13)** — 에디터 Play 모드.
+
+조건 (에디터에 직접 질의해 읽음): Intel Core i7-10700 (물리 8 / 논리 16), 워커 15, Burst 컴파일 켜짐, **Burst Safety Checks 켜짐, Jobs Debugger 켜짐, Leak Detection Enabled**. Count 10,000, Range 50, `MaxLifeTime` 3, **`WaitTime` 은 A·B 모두 0** (B 프리팹을 측정용으로 3 → 0 으로 바꿨다. 0 이면 B 는 죽은 프레임에 바로 되살아나 화면에서 사라지는 것은 보이지 않는다). 안전 검사가 켜져 있으므로 **절대값보다 A·B 비교로 읽는다.**
+
+출처: 사용자가 Profiler 에서 **Save** 한 `ProfilerCaptures/Survivors-Like-DOTS-Game_2026-10-13_15-46-45.data` (A), `…_15-48-49.data` (B) 를 `ProfilerDriver.LoadProfile` → `GetRawFrameDataView` 로 읽었다. 각 캡처의 **마지막 60프레임(1939~1998) 중앙값**, 단위 ms. 사용자가 Profiler 창에서 직접 읽은 값과 Archetypes 창의 청크 수는 **받지 못했다** (확인 질문 범위를 줄이면서 생략했다).
+
+| 항목 | A (생성·삭제) | B (Enableable 풀링) |
+|---|---|---|
+| 메인 스레드: 방식의 시스템 `OnUpdate` | `CubeASystem` **0.046** | `LifeSystem` **0.010** (예약만) |
+| 메인 스레드: ECB 재생 (`EndSimulationEntityCommandBufferSystem` 안의 `CubeASystem` → `EntityCommandBuffer.Playback`) | **0.119** (범위 0.094~0.773) | 0.0004 (할 일 없음) |
+| **메인 스레드 합계** | **약 0.165** | **약 0.010** |
+| 워커: `LifeJob (Burst)` | — | 조각 15개, 전체 길이 0.016, **조각 합계 0.201** |
+| 워커: `AliveJob (Burst)` | — | 조각 15개, 전체 길이 0.004, **조각 합계 0.045** |
+| `SimulationSystemGroup` (메인 스레드) | 1.64 | 0.80 |
+| 프레임 전체 | 6.11 | 4.17 |
+| `RotationSystem` (참고, 두 씬 공통) | 0.153 | 0.160 |
+
+읽은 것
+- **메인 스레드 비용은 A 가 B 의 약 16배** (0.165 vs 0.010). A 의 비용 중 약 72% 가 `OnUpdate` 가 아니라 **재생**에 찍힌다 (0.119 / 0.165).
+- **CPU 시간의 총량은 B 가 더 크다.** B 의 조각 합계 0.201 + 0.045 + 메인 0.010 = 약 0.256, A 는 약 0.165. B 는 일을 줄인 것이 아니라 **메인 스레드에서 워커로 옮긴 것**이다. 4단계 관찰 2 (조각 합계가 한 스레드 시간의 3.8배)와 같은 모양이다.
+- **A 는 우리 시스템 밖에서도 느리다.** `SimulationSystemGroup` 차이 0.84, 프레임 차이 1.94 인데 우리 시스템의 메인 스레드 차이는 0.155 뿐이다. 나머지가 어디서 오는지는 **측정하지 않았다.** 가설: 매 프레임 새 엔티티가 생기고 청크 구성이 바뀌어 Entities Graphics 와 Transform 쪽이 다시 처리할 것이 생긴다. **확인하지 못한 가설이다.**
+- A 의 재생 안에서 `CompleteAllJobs` 는 0.006 이었다 (프레임 1979 한 프레임). 이 씬에는 돌고 있는 큰 Job 이 없어 **sync point 의 대기 비용은 거의 드러나지 않았다.**
+- 워커들의 시작 시각 차이는 0.003 이내였다 (프레임 1977~1979). 4단계에서 본 시작 지연(+0.056)은 이번에는 보이지 않았다.
+- A 의 프레임당 사건 수는 재지 않았다. 계산으로는 10,000 ÷ 평균 수명 1.5초 ≈ 초당 6,700개, 프레임 6.1 ms 기준 프레임당 약 40개다 (**계산, 측정 아님**).
+
+읽는 법 메모: 워커 스레드는 `GetRawFrameDataView(frame, threadIndex)` 의 **인덱스 66 이후**에 있었다 (스레드 그룹 `Job`, 이름 `Worker N`). 인덱스를 64 까지만 돌면 Job 이 하나도 안 잡힌다. 200프레임 × 300스레드를 한 번에 읽으면 파이프라인의 메인 스레드 제한(5초)에 걸린다 — 60프레임으로 줄이고 `eval_file` 의 `--timeout` 을 늘려 읽었다.
+
+**둘째 날 리뷰에서 고친 것 (2026-10-13, `CubeASystem`)**
+
+| 처음 쓴 것 | 왜 틀렸나 / 실행하면 | 고친 것 |
+|---|---|---|
+| `RefRW<Life> newLife = life;` 뒤에 `newLife.ValueRW.Elapsed = …` | 복사가 아니다. `RefRW` 는 청크 안의 그 자리를 **가리키는 것**이라, 변수에 하나 더 담아도 같은 곳을 가리킨다. 이 줄은 **죽는 큐브의 원본**을 고친다. "새 사본을 바꾸는 것 아니냐" 고 답했다 (✗). 결과가 맞았던 건 원본이 어차피 삭제되고, 바로 아래에서 고쳐진 원본을 읽어 ECB 에 복사했기 때문이다. 살려 둘 엔티티에 같은 식으로 쓰면 값이 조용히 바뀌는 버그가 된다 | `Life newLife = life.ValueRO;` → `newLife.Elapsed = …` → `ecb.SetComponent(newEntity, newLife)` |
+| `Random.CreateFromIndex(spawner.Seed)` | 시드가 Play 내내 같아서 **매 프레임 같은 수열이 처음부터** 나온다. 프레임마다 첫 번째로 죽는 큐브가 항상 같은 값을 받는다 (이 부분은 사용자가 바로 맞게 답했다) | 프레임마다 달라지는 값을 섞는다 |
+| `(uint)SystemAPI.Time.ElapsedTime * spawner.Seed` | ① `(uint)` 는 바로 뒤의 것에만 적용돼 **곱셈보다 먼저** 소수점을 버린다 ② 곱하는 수가 1 이라 끌어올리는 효과가 없다. 5.2초와 5.9초의 값을 "5.2, 5.9" 라고 답했다 (✗, 둘 다 5). 시드가 1초에 한 번만 바뀐다 | `math.hash(new uint2((uint)(ElapsedTime * 1000f), spawner.Seed))` |
+
+**확인 질문 답** — 사용자와 정해서 **4·5번만 직접 답했다.** 측정이 학습에 얼마나 중요한지 사용자가 물었고, "숫자보다 결론 세 줄이 중요하다" 로 정리한 뒤 범위를 줄였다. 3·6번은 과제를 하며 직접 겪은 것으로 대신하고, 1번은 측정 표로 대신했다. 2·7번은 Claude 의 설명만 들었다.
+
+| # | 처음 답 | 판정 · 왜 | 정리한 답 |
+|---|---|---|---|
+| 예상 | "A 가 한 스레드에서 모든 큐브 동작을 실행하니 메인 스레드를 더 오래 쓸 것" | 방향 ✅ (실측 약 16배). **빠진 것**: ① 재생도 메인 스레드이고 그쪽이 더 크다 ② "한 스레드라서" 는 A 의 본질이 아니다 — A 의 루프도 Job 으로 옮길 수 있지만 **재생은 반드시 메인 스레드**다 | 차이의 본질은 "루프를 어디서 도느냐" 가 아니라 **구조적 변경이 있느냐**다 |
+| 1 | (직접 답하지 않음) | 측정 표로 대신 | `EndSimulationEntityCommandBufferSystem` 아래 `CubeASystem` → `EntityCommandBuffer.Playback` 줄에 **0.119 ms** 로 나타난다. A 비용의 약 72% 가 여기다 |
+| 2 | (직접 확인하지 않음) | Archetypes 창을 보지 않았다 | 예상: 아키타입 수는 A·B 모두 "큐브 + 프리팹 엔티티" 로 같다. B 는 꺼져도 **같은 아키타입·같은 청크**에 남는다 (켜짐 표시는 아키타입의 일부가 아니다). **확인하지 않은 예상이다** |
+| 3 | "큐브가 안 사라진다, 코드가 잘못됐나" | 과제 중에 직접 겪었다 (10-12) | `Alive` 만 끄면 **죽었는데 화면에는 보인다.** 렌더러는 `MaterialMeshInfo` 의 켜짐만 본다 |
+| 4 | "삭제하면 구조적 변경이 일어나 빈 공간에 다른 엔티티를 넣는 작업이 생긴다" (✅) + "비트를 끈다는 게 무슨 말인지 모르겠다" → "내가 만든 태그용 빈 struct 를 비트라고 한 건가?" → "예외가 터질 것 같다. `ref` 로 주소를 받아 쓰는 중에 데이터가 옮겨지니까. 체크는 체크 여부만 검사하니 예외가 안 생긴다" | 핵심 ✅. **"비트" 라는 말이 통하지 않았다** — "엔티티마다 하나씩 있는 체크박스, 청크가 따로 든 한 줄" 그림에서 풀렸다. struct 가 비트인 게 아니라 **struct 에 딸린 켜짐 표시**다 (`IEnableableComponent` 일 때만 생긴다. `CubeA` 에는 없다). 보정: 막지 않으면 예외조차 없이 **엉뚱한 엔티티의 값을 읽고 쓴다.** 그래서 Unity 가 아예 못 하게 막은 것이다 | 삭제는 청크 안의 데이터를 옮겨서 다른 워커가 잡고 있는 자리가 틀어진다. 모든 Job 이 끝난 뒤 메인 스레드에서만 할 수 있어 Job 안에서는 ECB 로 미룬다. 켜고 끄기는 표시 하나만 바꾸고 아무것도 옮기지 않아 Job 안에서 바로 된다 |
+| 5 | "꺼진 엔티티도 삭제된 게 아니라 메모리를 차지한다. 1만 개가 필요한데 10만 개를 잡으면 그만큼 공간을 확보해야 한다" | ✅ | 보탬: ① 2단계 실측(엔티티 약 250바이트, 청크당 64개)으로 **계산**하면 10만 개 ≈ 1,563청크 ≈ 25MB, 1만 개 ≈ 2.5MB ② 메모리만이 아니다. 쿼리는 꺼진 엔티티가 섞인 청크에 들어가 **표시를 하나씩 확인하며 건너뛴다.** 살아 있는 것이 드문드문 흩어지면 같은 일을 하려고 더 많은 청크를 훑는다 (이번에 측정하지 않았다) |
+| 6 | (과제에서 직접 씀) | `EnabledRefRW<Alive>` 가 무엇을 걸러 주는지는 맞게 답했다 (10-12) | `WithAll<Alive>` 와 `EnabledRefRW<Alive>` 파라미터는 꺼진 엔티티를 건너뛴다. 꺼진 것을 찾으려면 `[WithDisabled(typeof(Alive), typeof(MaterialMeshInfo))]` |
+| 7 | (설명만 들음) | — | 병렬 워커들이 ECB 에 적는 순서는 실행할 때마다 다르다. `sortKey` 를 같이 적어 두면 재생 때 그 순서로 정렬해 **매번 같은 결과**가 나온다 |
+
+**프로젝트 코드와 비교** — [Active.cs](../Assets/MyAssets/Scripts/Runtime/Pooling/Active.cs), [PoolUtility.cs](../Assets/MyAssets/Scripts/Runtime/Pooling/PoolUtility.cs)
+
+| | 내 코드 (B 방식) | 프로젝트 |
+|---|---|---|
+| 살아 있음 표시 | `Alive : IComponentData, IEnableableComponent` | `Active` — **같다** |
+| 렌더링 끄기 | `EnabledRefRW<MaterialMeshInfo>` 를 같이 끈다 | **같다.** `Active` 주석에 "이 태그만 끄면 렌더링이 꺼지지 않는다" 가 적혀 있다 — 내가 직접 겪은 그 문제다 |
+| 메인 스레드에서 켜고 끄기 | 없음 (Job 에서만) | `PoolUtility.SetAlive` — 둘을 **항상 함께** 바꾸도록 한 곳에 모았다. "하나만 바꾸면 안 보이는데 맞는 적, 보이는데 통과되는 적이 생긴다" |
+| 렌더러가 없는 엔티티 | 고려 안 함 | `HasComponent<MaterialMeshInfo>` 로 확인하고 끈다 (판정 전용 엔티티 허용) |
+| 처음 상태 | 전부 **켜진 채** 만든다 | 2단계에서 본 대로 20,000개를 **꺼진 채** 만들어 두고 다른 시스템이 시간에 맞춰 켠다 |
+| 되살릴 때 | `Elapsed` 를 랜덤으로, 대기 시간 0 으로 | `Health` 를 `Max` 로 되돌린다 (그래서 `Health` 가 `Max` 를 같이 든다 — 내 `Life.MaxLifeTime` 과 같은 이유) |
+| A 방식 | 비교용으로 만들었다 | 없다. 프로젝트는 처음부터 풀링만 쓴다 (기획서 8.4 의 "구조적 변경 금지") |
+
+**배운 것 / 다음에 다르게**
+- ECB 는 구조적 변경의 **비용을 없애지 않고 한곳에 모은다.** 비용은 메모하는 시스템이 아니라 재생하는 시스템에 찍힌다 (0.046 vs 0.119).
+- 풀링은 일을 줄인 것이 아니라 **메인 스레드에서 워커로 옮긴 것**이다. CPU 총량은 오히려 B 가 컸다. "풀링이 빠르다" 는 "메인 스레드가 덜 막힌다" 로 말해야 정확하다.
+- `RefRW`·`RefRO` 는 값이 아니라 **가리킴**이다. 변수에 담아도 복사가 아니다. 값이 필요하면 `.ValueRO` 로 꺼내 struct 변수에 담는다. 이틀 동안 같은 지점에서 세 번 막혔다 (`GetComponent` 복사, `transform.ValueRO`, `RefRW<Life> newLife`).
+- 추상적인 말("주소", "비트")보다 **큐브 하나의 값을 줄 단위로 따라가는 표와 그림**이 잘 통했다.
+- 이번 측정 규모(1만 개, 프레임당 약 40건)에서는 차이가 0.155 ms 로 작다. 수치를 외우는 것보다 **어디에 찍히는지**를 아는 쪽이 남는다.
+
+---
+
+## 6단계 — 싱글턴과 시스템 간 통신
+
+### 6.1 개념
+
+**시스템은 서로를 부르지 않는다**
+MonoBehaviour 에서는 `enemy.TakeDamage(10)` 처럼 다른 객체의 함수를 부른다. ECS 의 시스템에는 그런 통로가 없다. 시스템 A 가 **데이터를 써 두면** 뒤에 도는 시스템 B 가 **그 데이터를 읽는다.** 그래서 두 가지가 필요하다 — 데이터를 둘 곳(이번 단계)과 실행 순서(3단계의 `[UpdateAfter]`).
+
+**싱글턴**
+월드에 **딱 하나**만 있는 컴포넌트다. 지금까지는 읽기만 했다 (`GetSingleton<Spawner>()`, `GetSingletonEntity<PlayerTag>()`). 이번에는 직접 만들고 쓴다.
+
+```csharp
+state.EntityManager.CreateSingleton<StudyInputState>();        // 만들기 (OnCreate 에서 한 번)
+SystemAPI.SetSingleton(new StudyInputState { Move = move });   // 통째로 덮어쓰기
+float2 move = SystemAPI.GetSingleton<StudyInputState>().Move;  // 읽기 (복사본)
+RefRW<T> rw = SystemAPI.GetSingletonRW<T>();                   // 그 자리에 직접 쓰기
+```
+
+- 5단계 첫날의 실수를 떠올린다: N개에 붙은 컴포넌트에 `GetSingleton` 을 쓰면 예외다. **하나뿐이라고 약속한 것**에만 쓴다.
+- `GetSingleton` 이 돌려주는 것은 복사본이다 (5단계에서 세 번 막힌 그것). 고치려면 `SetSingleton` 으로 다시 넣거나 `GetSingletonRW` 로 받는다.
+
+**매니지드와 Burst 의 경계**
+3단계 5번에서 `Keyboard` 는 매니지드 타입이라 Burst 가 못 읽는다고 배웠고, 그래서 이동 시스템 전체를 `SystemBase` 로 썼다. 싱글턴을 쓰면 나눌 수 있다. **입력만 읽는 작은 `SystemBase`** 가 싱글턴에 써 두고, 이동은 `ISystem` + Burst 가 그 싱글턴을 읽는다. 매니지드 코드가 한 곳에만 남는다.
+
+**이벤트 — "나중에 처리해 줘" 목록**
+"A 가 B 를 때렸다" 같은 일은 그 자리에서 `Health` 를 깎지 않고, **목록에 적어 두고** 다른 시스템이 한꺼번에 처리한다. 5단계의 ECB 와 같은 생각이다 (기록 → 나중에 한 번에 적용).
+
+목록을 둘 곳으로 이번에는 `DynamicBuffer` 를 쓴다. 엔티티에 붙는 **길이가 변하는 배열**이다.
+
+```csharp
+public struct StudyDamageEvent : IBufferElementData { public Entity Target; public float Amount; }
+
+DynamicBuffer<StudyDamageEvent> buffer = SystemAPI.GetSingletonBuffer<StudyDamageEvent>();
+buffer.Add(new StudyDamageEvent { Target = e, Amount = 10f });   // 적기
+for (int i = 0; i < buffer.Length; i++) { … }                     // 읽기
+buffer.Clear();                                                   // 다 처리했으면 비우기
+```
+
+**다른 엔티티의 컴포넌트에 쓰기**
+이벤트에는 "누구를"(`Entity Target`)만 적혀 있다. 쿼리로 돌고 있는 엔티티가 아니라 **번호로 지목한 엔티티**의 `Health` 를 고쳐야 한다.
+
+```csharp
+RefRW<Health> health = SystemAPI.GetComponentRW<Health>(target);   // 메인 스레드
+health.ValueRW.Current -= amount;
+```
+
+**왜 그 자리에서 `Health` 를 깎지 않나**
+피해를 주는 쪽이 병렬 Job 이면, 같은 적을 두 워커가 동시에 때릴 때 **같은 `Health` 에 동시에 쓰게 된다** (4단계의 `Random` 과 같은 레이스). 적어 두었다가 한 스레드가 차례로 적용하면 안전하다. 또 "누가 때렸는지" 와 "맞으면 어떻게 되는지" 가 분리되어, 피해를 주는 시스템이 늘어도 적용하는 곳은 하나다.
+
+### 6.2 과제
+
+**목표**: 플레이어 가까이 온 추격자가 피해를 입고, 체력이 다하면 사라진다. 이 과정을 **세 시스템이 데이터로만 이어지게** 만든다. 입력도 싱글턴으로 분리한다.
+
+**파일 구조는 직접 설계한다.** 필요한 것은 아래다.
+
+**조건**
+- **(입력)** 키보드를 읽는 시스템은 `SystemBase` 로 하나만 두고, 읽은 값을 **싱글턴 컴포넌트**에 쓴다. 플레이어를 움직이는 시스템은 **`ISystem` + Burst** 로 쓰고 그 싱글턴만 읽는다 (`Keyboard` 를 직접 만지지 않는다)
+- **(피해 만들기)** 플레이어와의 거리가 일정 반경 안인 추격자마다 **이벤트를 하나 적는다.** 이 시스템은 `Health` 를 **건드리지 않는다**
+- **(피해 적용)** 이벤트 목록을 읽어 대상의 `Health` 를 깎고 목록을 **비운다.** 사망 판정은 여기서 하지 않는다
+- **(사망)** `Health` 가 0 이하인 추격자를 5단계 방식으로 **끈다** (`Alive` 와 `MaterialMeshInfo`). 되살리기는 선택
+- 세 시스템의 **실행 순서를 명시**한다 (만들기 → 적용 → 사망)
+- 1~5단계 파일은 수정하지 않는다. 필요한 것은 `Step06` 에 새로 만든다 (5단계의 `Alive` 는 가져다 써도 된다)
+- 반경, 초당 피해량, 최대 체력은 Authoring 인스펙터 값으로
+- 이번 단계의 피해 시스템들은 **메인 스레드 `foreach`** 로 쓴다. Job 으로 옮기는 것은 7단계에서 다룬다
+
+**API 힌트** (이름만 줌)
+- `EntityManager.CreateSingleton<T>()`, `SystemAPI.SetSingleton`, `SystemAPI.GetSingleton`, `SystemAPI.GetSingletonRW`
+- `IBufferElementData`, `DynamicBuffer<T>`, `EntityManager.AddBuffer<T>(entity)`, `SystemAPI.GetSingletonBuffer<T>()`
+- `SystemAPI.GetComponentRW<T>(entity)`, `SystemAPI.HasComponent<T>(entity)`
+- `math.distancesq` (거리 비교는 제곱끼리 한다)
+- `.WithEntityAccess()` (5단계에서 썼다)
+
+**씬 작업**
+1. `Step06.unity` + SubScene
+2. 플레이어 큐브 하나, 추격자 스포너 하나 (Count 는 100 정도로 시작)
+3. Play 해서 플레이어에 닿은 추격자가 잠시 뒤 사라지는지 확인한다. Entities Hierarchy 에서 추격자의 `Health` 가 줄어드는 것도 본다
+
+**확인 질문**
+1. 입력 싱글턴을 만드는 코드를 `OnCreate` 가 아니라 `OnUpdate` 에 두면 무슨 일이 생기는가?
+2. 피해 적용 시스템이 **목록을 비우지 않으면** 다음 프레임에 무슨 일이 생기는가?
+3. 세 시스템의 순서를 지정하지 않아 "적용 → 만들기 → 사망" 순으로 돌면 무엇이 달라지는가?
+4. 이벤트의 대상이 **이미 꺼진** 추격자면 어떻게 되는가? **삭제된** 엔티티였다면? (5단계 A 방식과 연결)
+5. 피해를 만드는 쪽을 병렬 Job 으로 바꾸면 `DynamicBuffer.Add` 를 그대로 쓸 수 있는가? 왜인가? (답만 생각해 보기 — 7단계로 이어진다)
+6. 초당 피해량을 `deltaTime` 없이 프레임마다 그대로 적으면 무엇이 문제인가?
+
+### 6.3 결과 / 배운 것
+
+> 과제를 마치면 여기에 적는다.

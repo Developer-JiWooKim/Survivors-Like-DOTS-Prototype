@@ -9,6 +9,7 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step05
     [BurstCompile]
     public partial struct CubeASystem : ISystem
     {
+        private const float SeedMul = 1000f;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -25,7 +26,8 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step05
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             var spawner = SystemAPI.GetSingleton<Spawner>();
 
-            Random random = Random.CreateFromIndex(spawner.Seed);
+            uint mixed = math.hash(new uint2((uint)(SystemAPI.Time.ElapsedTime * SeedMul), spawner.Seed));
+            Random random = Random.CreateFromIndex(mixed);
 
             foreach (var (life, transform, entity) in SystemAPI.Query<RefRW<Life>, RefRO<LocalTransform>>().WithAll<CubeA>().WithEntityAccess())
             {
@@ -33,11 +35,11 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step05
                 if (life.ValueRO.Elapsed > life.ValueRO.MaxLifeTime)
                 {
                     ecb.DestroyEntity(entity);
-                    RefRW<Life> newLife = life;
-                    newLife.ValueRW.Elapsed = random.NextFloat(0, life.ValueRO.MaxLifeTime);
+                    Life newLife = life.ValueRO;
+                    newLife.Elapsed = random.NextFloat(0, life.ValueRO.MaxLifeTime);
                     Entity newEntity = ecb.Instantiate(spawner.Prefab);
                     ecb.SetComponent(newEntity, transform.ValueRO);
-                    ecb.SetComponent(newEntity, newLife.ValueRO);
+                    ecb.SetComponent(newEntity, newLife);
                 }
             }
         }

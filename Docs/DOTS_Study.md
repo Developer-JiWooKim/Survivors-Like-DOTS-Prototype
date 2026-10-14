@@ -21,10 +21,10 @@
 | | |
 |---|---|
 | **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08), 5단계 (2026-10-13), 6단계 (2026-10-14) |
-| **지금** | **7단계 — NativeContainer 와 공간 해시 (마지막 단계).** 과제 명세(7.1, 7.2절)를 **노트에 써 두었고 사용자에게는 아직 설명하지 않았다** (2026-10-14 에 6단계를 마치며 작성). `Scripts/Step07/` 은 아직 없다. 6단계 코드는 `Scripts/Step06/` 에 있고 모두 동작한다 (입력 분리 + 피해 적기 → 적용 → 사망). 6단계 마지막 작업은 **미커밋**이다 (`67a3da8` 이후) |
-| **다음 행동** | **설명은 짧게, 한 번에 하나만. 추상적인 말보다 값 하나를 줄 단위로 따라가는 표·그림이 통한다. 막막해하면 "기존 파일 X 를 옆에 열고 몇 군데만 바꾼다" 는 빈칸 뼈대를 준다. 이름 바꾸기는 "지금 이름 → 새 이름" 한 줄씩, 지울 줄은 코드로 그대로 보여 준다** (6단계에서 슬래시 나열·"이 줄" 지칭이 두 번 반대로 읽혔다). ① 7.1절 개념을 짧게 같이 읽고 7.2절 과제를 전달한다. **가장 작은 조각부터**: 칸 좌표 계산(`floor`)과 메인 스레드 `foreach` 로 해시 채우기 ② 비교용 프로젝트 코드(`EnemySpatialHash`, `BuildEnemySpatialHashSystem`, `SpatialQueries`)는 과제가 끝난 뒤에 열게 한다 ③ 7단계가 끝나면 학습 전체를 마무리한다: CLAUDE.md 0.1절을 지우고 M3 로 돌아간다 (WorkLog 의 현재 위치 블록 참조). 마무리 전에 학습 전체 요약을 사용자와 정할지 묻는다 |
+| **지금** | **7단계 — NativeContainer 와 공간 해시 (마지막 단계).** 2026-10-14 에 시작했다. `Scripts/Step07/`: `Step07PlayerTag`, `Step07PlayerAuthoring`(태그만 7단계, `MoveSpeed`·`Step06PlayerAttack` 재사용), `Step07PlayerMoveSystem`(6단계 이동 복사), `Step07MappingSystem`. 씬 `Scenes/Step07/Step07.unity` (플레이어 + `StudyCubeTarget` 스포너 Count 100, Range 15). **`Step07MappingSystem` 은 해시 채우기(메인 스레드 `foreach`)가 동작하고**(`_map.Count()` 가 100 → 표적이 죽을 때마다 줄어드는 것 확인), **찾기는 주변 칸을 도는 이중 `for` 와 키 계산까지** 썼다. 칸 안의 엔티티를 꺼내는 `TryGetFirstValue`/`TryGetNextValue`, 거리 비교, `events.Add`, 비교 횟수 세기가 남았다. 컴파일은 로그 기준 통과. 6단계는 `d8b7447` 에 커밋됐고, 7단계 전체는 미커밋 |
+| **다음 행동** | **설명은 짧게, 한 번에 하나만. 값 하나를 줄 단위로 따라가는 표가 통한다 (7단계에서도 "칸 (4, -2) 의 3×3" 표로 루프 범위를 바로 고쳤다). 막히면 빈칸 뼈대를 준다.** ① `Step07MappingSystem` 의 안쪽 루프에 `TryGetFirstValue`/`TryGetNextValue` (모양은 이미 보여 줬다) → `GetComponent<LocalTransform>(target)` 로 위치 → `distancesq` vs `Range²` → `events.Add`(`Amount = DamagePerSecond × deltaTime`, **`deltaTime` 을 아직 안 받았다**) ② 비교 횟수를 세서 `Debug.Log` — 표적 무리 한가운데와 빈 곳에서 각각 보게 한다 (6단계는 매 프레임 살아 있는 표적 수만큼) ③ 6단계처럼 깎이고 죽는지 확인 ④ 해시 채우기를 `IJobEntity` + `ParallelWriter` 로 옮긴다 — 용량 확보(`Capacity`)와 "채우는 Job 이 끝난 뒤 읽기"(확인 질문 4·5번)가 여기서 나온다 ⑤ Count 10,000 측정 (6단계 씬 vs 7단계 씬) ⑥ 확인 질문 6개 ⑦ 학습 마무리: CLAUDE.md 0.1절 삭제, M3 복귀. 마무리 전에 학습 전체 요약을 할지 사용자에게 묻는다 |
 | **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다. **에디터 로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다** (2026-10-12 확인). `AppData/Local/Unity/Editor/Editor.log` 는 갱신되지 않는 옛 파일이다. CLAUDE.md 3.2절의 경로는 2026-10-13 에 고쳤다 |
-| **확인할 것** | 6단계를 마칠 때 남은 것 없음. 7단계를 시작할 때 6단계 5번(병렬 Job 에서 `DynamicBuffer.Add`)의 답을 한 줄로 떠올리게 하면 `ParallelWriter` 로 바로 이어진다 |
+| **확인할 것** | 에디터가 **관리자 권한**으로 켜져 있으면 `unity-recompile.sh` 가 exit 3 으로 연결되지 않는다 (2026-10-14 종일. 창 제목 "Administrator: …". 원인은 추정). 그때는 `Logs/Editor.log` 의 `Tundra build success/failed` 줄과 **파일 저장 시각**을 비교해 확인한다 — 로그가 저장보다 이르면 아직 컴파일 전이다 (에디터에 포커스가 없으면 자동 컴파일이 안 돈다) |
 | **본 작업** | M3 는 학습이 끝날 때까지 멈춤. 상태는 [WorkLog.md](WorkLog.md) 의 현재 위치 블록 참조 |
 
 ### Claude 가 지킬 진행 규칙 (사용자와 합의한 것, 2026-10-01)
@@ -54,7 +54,7 @@
 | 4 | Job·Burst (`IJobEntity`, `ScheduleParallel`, 의존성) | 3단계를 병렬로, Profiler 비교 | ISSUE-006, `PlayerPosition` | ✅ 2026-10-08 |
 | 5 | 구조적 변경, ECB, Enableable 컴포넌트 | 생성·삭제 vs 풀링 | `Active`, `PoolUtility` | ✅ 2026-10-13 |
 | 6 | 싱글턴, 시스템 간 통신 | 입력 싱글턴, 데미지 이벤트 | `PlayerInputState`, `DamageEventBus`, `DamageApplySystem` | ✅ 2026-10-14 |
-| 7 | NativeContainer, 공간 해시 | 반경 안 표적 찾기를 공간 해시로 | `EnemySpatialHash`, `BuildEnemySpatialHashSystem` | ⏳ 과제 전달 전 |
+| 7 | NativeContainer, 공간 해시 | 반경 안 표적 찾기를 공간 해시로 | `EnemySpatialHash`, `BuildEnemySpatialHashSystem` | ⏳ 진행중 (해시 채우기 완료, 찾기 중간) |
 
 ---
 
@@ -1138,3 +1138,20 @@ health.ValueRW.Current -= amount;
 ### 7.3 결과 / 배운 것
 
 > 과제를 마치면 여기에 적는다. **측정 표를 반드시 포함한다** (방식 / 비교 횟수 / ms / Count / CPU / Jobs 메뉴 상태).
+
+**진행 중 기록 (2026-10-14)** — 6단계를 마친 날 이어서 시작했다. 해시 채우기 완료, 찾기는 루프와 키 계산까지.
+
+**작성 경위**
+- 첫걸음은 "컨테이너를 만들고 버리기" 만 줬다 (`OnCreate` 에서 `Persistent` 로 만들고 `OnDestroy` 에서 `Dispose`). 빈칸 하나짜리 뼈대를 주자 바로 썼다.
+- 혼자 쓴 것: `Step07MappingSystem` 의 해시 채우기 전체(`CellSize` 상수, `Clear`, 살아 있는 표적만, `floor` → `int2` → `math.hash`), 7단계 플레이어 태그·Authoring·이동 시스템(6단계 파일을 옆에 열고 세 군데씩 바꿈), 플레이어 칸 계산, 주변 칸 이중 `for`.
+- 문법 예시를 받은 것: `new NativeParallelMultiHashMap<int, Entity>(1024, Allocator.Persistent)`, `(int2)math.floor(pos / CellSize)`, `_map.Add((int)math.hash(cell), e)`, `TryGetFirstValue`/`TryGetNextValue` 의 `do-while` 모양, 이중 `for` 의 빈칸 뼈대.
+- 설계 결정 (사용자): 6단계 공격 시스템과 겹치지 않게 **7단계용 플레이어 태그를 따로** 만든다 (6단계 공격·이동은 `Step06PlayerTag` 가 없으면 안 돌고, 피해 적용·사망은 플레이어를 몰라 그대로 재사용된다). 6단계 공격 시스템을 고쳐서 끄는 안은 "이전 단계 파일 수정 금지" 를 깨서 고르지 않았다.
+
+**틀렸다가 고친 것**
+
+| 처음 쓴 것 | 왜 틀렸나 / 실행하면 | 고친 것 |
+|---|---|---|
+| (질문) "`Dispose` 를 빼먹으면 시스템이 들고 있으니 다음 실행에서도 남아 있는 것 아닌가" | 메모리가 남는 것은 맞다. 하지만 그것을 가리키던 `_map` 은 시스템과 함께 사라지고, 다음 Play 의 `OnCreate` 는 **새로** 잡는다. 옛 메모리는 아무도 못 찾고 못 푼다 → **누수**. Play 마다 쌓이고 에디터를 꺼야 사라진다. Leak Detection 이 켜져 있으면 "A Native Collection has not been disposed" 경고 | — |
+| `using log4net.Util;` | IDE 자동완성이 넣었다. 안 쓰고, 에디터 전용 라이브러리라 빌드에서 깨질 수 있다 | 삭제 |
+| 플레이어 칸 계산을 건너뜀 | 주변 칸을 돌려면 중심 칸이 먼저 필요하다 | 표적 칸과 같은 식 |
+| `for (dy = 0; dy <= cellRange…)` 안에 `for (dx = dy; dx <= cellRange…)` | `cellRange` 1 이면 (0,0), (1,0), (1,1) **3칸만** 본다. 시작이 0 이라 왼쪽·아래 칸을 전혀 안 보고, 안쪽이 `dy` 부터라 오른쪽 위 삼각형만 남는다. 플레이어 왼쪽·아래에 붙은 표적은 피해를 안 입는다. 컴파일러는 못 잡는다. "칸 (4, -2) 의 3×3" 표로 어느 칸이 빠지는지 보이자 바로 고쳤다 | 둘 다 `-cellRange` ~ `+cellRange` (1 이면 9칸, 3 이면 49칸) |

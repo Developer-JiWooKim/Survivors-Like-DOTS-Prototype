@@ -8,7 +8,7 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step06
     {
         [SerializeField] private float _moveSpeed = 10f;
         [SerializeField] private float _range = 3f;
-        [SerializeField] private float _secondsPerDamage = 1f;
+        [SerializeField] private float _damagePerSeconds = 1f;
 
         private sealed class Step06PlayerBaker : Baker<Step06PlayerAuthoring>
         {
@@ -22,7 +22,7 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step06
                 AddComponent(entity, new Step06PlayerAttack
                 {
                     Range = authoring._range,
-                    DamagePerSecond = authoring._secondsPerDamage,
+                    DamagePerSecond = authoring._damagePerSeconds,
                 });
                 AddComponent<Step06PlayerTag>(entity);
 

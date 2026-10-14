@@ -22,7 +22,7 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step06
                 AddComponent(entity, new Step06PlayerAttack
                 {
                     Range = authoring._range,
-                    SecondPerDamage = authoring._secondsPerDamage,
+                    DamagePerSecond = authoring._secondsPerDamage,
                 });
                 AddComponent<Step06PlayerTag>(entity);
 

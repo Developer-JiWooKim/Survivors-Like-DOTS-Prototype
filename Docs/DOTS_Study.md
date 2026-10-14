@@ -20,11 +20,11 @@
 
 | | |
 |---|---|
-| **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08), 5단계 (2026-10-13) |
-| **지금** | **6단계 — 싱글턴과 시스템 간 통신.** 2026-10-13 에 시작했다. **입력 분리는 끝났다** (`Step06StudyInputState` 싱글턴 + `Step06StudyInputSystem`(`SystemBase`) → `Step06PlayerMoveSystem`(`ISystem` + Burst), 동작 확인). **데미지 이벤트는 중간이다**: `Step06Health`, 표적 Authoring·프리팹(`StudyCubeTarget`, Max Hp 3), `DamageEvent`(`IBufferElementData`, `Target`/`Amount`), 목록을 만드는 `DamageSystem`(`CreateSingletonBuffer`), 플레이어의 `Step06PlayerAttack`(`Range`/`SecondPerDamage`) 까지 있다. `DamageSystem.OnUpdate` 는 플레이어 위치를 읽고 표적을 도는 `foreach` 까지 썼고 **`events.Add` 줄은 주석 상태**다. 컴파일 통과. 씬 `Scenes/Step06/Step06.unity`: 플레이어 1 + 2단계 스포너 Count 100, Range 15. 표적은 **움직이지 않는다** (추격 시스템을 다시 쓰지 않기로 사용자가 정했다). 5단계 커밋 `6d6dff9` 이후는 미커밋. 경위는 6.3절 "진행 중 기록" |
-| **다음 행동** | **설명은 짧게, 한 번에 하나만. 추상적인 말보다 값 하나를 줄 단위로 따라가는 표·그림이 통한다.** 막막해하면 "기존 파일 X 를 옆에 열고 세 군데만 바꾼다" 처럼 빈칸 있는 뼈대를 준다 (6단계 첫걸음에서 이렇게 풀렸다). ① `DamageSystem` 을 읽고 이어간다. **지금 한 시스템이 목록을 만들고(소유) 피해도 적으려 한다** — 과제는 만들기/적용/사망 **세 시스템**이다. 답을 주지 말고 "이 시스템은 적는 쪽인가 적용하는 쪽인가" 를 묻고 나누게 한다 ② `DamageSystem` 에 `RequireForUpdate` 가 없어 **플레이어가 없는 씬에서 `GetSingletonEntity<Step06PlayerTag>()` 가 매 프레임 예외를 낸다** (예: `Step05B` 를 Play 하면). 1단계 질문 5번과 연결해 묻는다 ③ `events.Add` 를 채우고 거리 비교(`math.distancesq`)와 `Amount` 계산을 쓴다. `Step06PlayerAttack.SecondPerDamage` 는 이름이 "초당 피해량" 인지 "피해 간격(초)" 인지 모호하다 — 어느 뜻인지 묻는다 ④ **목록을 비우지 않은 채 Play 해서 길이가 계속 늘어나는 것을 직접 보게 한다** (확인 질문 2번) ⑤ 적용 시스템(`GetComponentRW<Step06Health>(target)`, 목록 `Clear`) → 사망 시스템(`Alive`·`MaterialMeshInfo` 끄기) → 확인 질문 6개 |
+| **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08), 5단계 (2026-10-13), 6단계 (2026-10-14) |
+| **지금** | **7단계 — NativeContainer 와 공간 해시 (마지막 단계).** 과제 명세(7.1, 7.2절)를 **노트에 써 두었고 사용자에게는 아직 설명하지 않았다** (2026-10-14 에 6단계를 마치며 작성). `Scripts/Step07/` 은 아직 없다. 6단계 코드는 `Scripts/Step06/` 에 있고 모두 동작한다 (입력 분리 + 피해 적기 → 적용 → 사망). 6단계 마지막 작업은 **미커밋**이다 (`67a3da8` 이후) |
+| **다음 행동** | **설명은 짧게, 한 번에 하나만. 추상적인 말보다 값 하나를 줄 단위로 따라가는 표·그림이 통한다. 막막해하면 "기존 파일 X 를 옆에 열고 몇 군데만 바꾼다" 는 빈칸 뼈대를 준다. 이름 바꾸기는 "지금 이름 → 새 이름" 한 줄씩, 지울 줄은 코드로 그대로 보여 준다** (6단계에서 슬래시 나열·"이 줄" 지칭이 두 번 반대로 읽혔다). ① 7.1절 개념을 짧게 같이 읽고 7.2절 과제를 전달한다. **가장 작은 조각부터**: 칸 좌표 계산(`floor`)과 메인 스레드 `foreach` 로 해시 채우기 ② 비교용 프로젝트 코드(`EnemySpatialHash`, `BuildEnemySpatialHashSystem`, `SpatialQueries`)는 과제가 끝난 뒤에 열게 한다 ③ 7단계가 끝나면 학습 전체를 마무리한다: CLAUDE.md 0.1절을 지우고 M3 로 돌아간다 (WorkLog 의 현재 위치 블록 참조). 마무리 전에 학습 전체 요약을 사용자와 정할지 묻는다 |
 | **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다. **에디터 로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다** (2026-10-12 확인). `AppData/Local/Unity/Editor/Editor.log` 는 갱신되지 않는 옛 파일이다. CLAUDE.md 3.2절의 경로는 2026-10-13 에 고쳤다 |
-| **확인할 것** | "`GetSingleton` 으로 받은 값을 바꾸면 싱글턴도 바뀌는가" 는 2026-10-13 에 **바로 맞게 답했다** ("얻어온 건 값이고 주소가 아니다"). `RefRW<Life> a = life;` 와 `Life a = life.ValueRO;` 의 차이는 물었지만 **답을 받지 못하고 넘어갔다** — 다시 물을 필요는 낮다 |
+| **확인할 것** | 6단계를 마칠 때 남은 것 없음. 7단계를 시작할 때 6단계 5번(병렬 Job 에서 `DynamicBuffer.Add`)의 답을 한 줄로 떠올리게 하면 `ParallelWriter` 로 바로 이어진다 |
 | **본 작업** | M3 는 학습이 끝날 때까지 멈춤. 상태는 [WorkLog.md](WorkLog.md) 의 현재 위치 블록 참조 |
 
 ### Claude 가 지킬 진행 규칙 (사용자와 합의한 것, 2026-10-01)
@@ -53,8 +53,8 @@
 | 3 | 태그 컴포넌트, 쿼리 필터, 다른 엔티티 읽기, 시스템 순서, `SystemBase` | 플레이어 추격 | `EnemyChaseSystem`, `PlayerMoveSystem` | ✅ 2026-10-07 |
 | 4 | Job·Burst (`IJobEntity`, `ScheduleParallel`, 의존성) | 3단계를 병렬로, Profiler 비교 | ISSUE-006, `PlayerPosition` | ✅ 2026-10-08 |
 | 5 | 구조적 변경, ECB, Enableable 컴포넌트 | 생성·삭제 vs 풀링 | `Active`, `PoolUtility` | ✅ 2026-10-13 |
-| 6 | 싱글턴, 시스템 간 통신 | 입력 싱글턴, 데미지 이벤트 | `PlayerInputState`, `DamageEventBus`, `DamageApplySystem` | ⏳ 진행중 (입력 완료, 이벤트 중간) |
-| 7 | NativeContainer, 공간 해시 | 가까운 적 찾기 | `EnemySpatialHash` | ⬜ |
+| 6 | 싱글턴, 시스템 간 통신 | 입력 싱글턴, 데미지 이벤트 | `PlayerInputState`, `DamageEventBus`, `DamageApplySystem` | ✅ 2026-10-14 |
+| 7 | NativeContainer, 공간 해시 | 반경 안 표적 찾기를 공간 해시로 | `EnemySpatialHash`, `BuildEnemySpatialHashSystem` | ⏳ 과제 전달 전 |
 
 ---
 
@@ -972,9 +972,9 @@ health.ValueRW.Current -= amount;
 
 ### 6.3 결과 / 배운 것
 
-> 과제를 마치면 여기에 적는다.
+**완료: 2026-10-14.** 10-13 에 입력 분리와 이벤트 목록까지, 10-14 에 적기 → 적용 → 사망과 확인 질문을 마쳤다. 플레이어가 다가가면 표적의 체력이 초당 약 1 씩 줄고, 0 이하가 되면 사라지며, 떠나면 깎이기를 멈추는 것을 눈으로 확인했다. 측정은 과제에 없었다.
 
-**진행 중 기록 (2026-10-13)** — 5단계를 마친 날 이어서 시작했다. 입력 분리 완료, 데미지 이벤트는 목록에 적는 시스템을 쓰는 중.
+**첫날 기록 (2026-10-13)** — 입력 분리 완료, 데미지 이벤트는 목록에 적는 시스템을 쓰는 중이었다.
 
 **작성 경위**
 - 과제를 받고 "어떻게 시작할지 모르겠다" 고 했다. 개념 설명과 확인 질문과 첫 과제를 한 번에 준 것이 과했다. **"`Life.cs` 를 옆에 열고 세 군데만 바꾼다"** 는 빈칸 뼈대를 주자 바로 썼다.
@@ -1003,4 +1003,138 @@ health.ValueRW.Current -= amount;
 |---|---|---|
 | `float2 moveDir = GetSingleton<…>().Move;` 아래에서 `moveDir = float2.zero;` 하면 싱글턴도 0 이 되는가 | "변하지 않는다. `GetSingleton` 으로 얻어온 건 값이고 주소가 아니라서 `moveDir` 에 0 이 대입될 뿐이다" | ✅ 5단계에서 세 번 막힌 지점을 바로 맞혔다 |
 
-**남은 문제 (다음 세션에서 사용자와 같이 본다)** — 위 📍 현재 위치의 "다음 행동" ①~③.
+(첫날 끝에 남긴 문제 — 시스템 나누기, `RequireForUpdate` 누락, `SecondPerDamage` 이름 — 는 아래 둘째 날 기록에서 모두 처리했다.)
+
+**둘째 날 기록 (2026-10-14)** — 데미지 이벤트의 나머지(적기 → 적용 → 사망)와 확인 질문.
+
+**작성 경위**
+- 시작하며 "`DamageSystem` 은 적는 쪽인가 적용하는 쪽인가" 를 물었다. 처음 답은 "적용은 여기서, **이벤트 발생은 `Step06Health` 를 들고 있는 타겟들이** 해야 하지 않나" — MonoBehaviour 식으로 오브젝트가 스스로 행동한다고 본 것이다 (✗). 엔티티는 데이터 묶음이고 무언가를 하는 것은 항상 시스템이다. 곧바로 "반대로 말했다, 피해를 주는 쪽은 플레이어" 로 고쳤다. 정밀하게는 그것도 "피해 만들기 **시스템**이 플레이어의 데이터를 읽어 적는다" 다.
+- 혼자 쓴 것: 세 시스템 전부 (`Step06PlayerAttackSystem`, `Step06DamageApplySystem`, `Step06DeadSystem`). 문법 예시를 받은 것은 `SystemAPI.GetComponentRW<T>(entity)` 한 줄.
+- 설계 결정 (사용자): 죽은 표적을 거르는 곳은 **공격 시스템**(`.WithAll<Step06Health, Alive>()`). 적용 시스템에서 거르는 안, 둘 다 하는 안과 비교한 뒤 골랐다. 프로젝트도 공격 쪽에서 `Active` 로 거른다.
+- 이 날 에디터가 **관리자 권한으로 켜져 있어** `unity-recompile.sh` 가 연결되지 않았다 (exit 3, 창 제목 "Administrator: …"). 원인은 확인하지 않은 추정이다. 컴파일은 `Logs/Editor.log` 의 `Tundra build success/failed` 와 저장 시각을 비교해 확인했다. 에디터 창에 포커스가 없으면 저장해도 컴파일이 돌지 않아, 로그 시각이 파일 저장 시각보다 이르면 "아직 컴파일 안 됨" 으로 읽었다.
+
+**틀렸다가 고친 것**
+
+| 처음 쓴 것 | 왜 틀렸나 / 실행하면 | 고친 것 |
+|---|---|---|
+| 적는 코드를 옮긴 새 시스템 이름이 `DeadSystem` → `DamagedSystem` | 하는 일(피해 만들기)과 이름(사망 / 피해 입음)이 어긋났다. `DamagedSystem` 과 `DamageSystem` 은 한 글자 차이였다 | `Step06PlayerAttackSystem` |
+| 이름을 바꾸며 적는 쪽을 `DamageApplySystem` 으로 지음 | Claude 가 "`A / B` → `C / D`" 로 짝을 슬래시로 적어 **어느 쪽이 어느 이름인지 분명하지 않았다** (Claude 의 안내 오류). 적는 쪽에 "Apply" 가 붙었다 | 적는 쪽 `Step06PlayerAttackSystem`, 적용 쪽 `Step06DamageApplySystem` |
+| 새 파일 이름에 공백 (`DamageApplySystem .cs`) | 동작은 하지만 검색·git 에서 불편하다 | Project 창에서 이름 다시 바꿈 |
+| `float2 attack = new float2(Range, SecondPerDamage)` 로 묶어 `attack.x`, `attack.y` 로 씀 | 이름이 사라져 x 가 반경인지 피해량인지 안 보인다. 빨라지지도 않는다 | `attack.Range`, `attack.DamagePerSecond` |
+| `SecondPerDamage` | 글자 그대로는 "피해 1 당 몇 초" 인데 "초당 피해량" 으로 썼다 | `DamagePerSecond` |
+| 적용 시스템에서 `CurrentHp -= attack.DamagePerSecond` (플레이어를 찾아가 공격 설정을 읽음) | ① 이벤트의 `Amount`(한 프레임 몫)를 무시하고 1초 몫을 깎아 60fps 면 60배 ② **적용 시스템이 피해를 준 쪽을 알게 되어** 이벤트를 쓰는 이유가 사라진다. 피해를 주는 쪽이 늘 때마다 적용 시스템을 고쳐야 한다 | `CurrentHp -= events[i].Amount`, 플레이어 읽기 삭제 |
+| `OnCreate` 에서 `CreateSingletonBuffer` 를 지우고 `RequireForUpdate<Step06DamageEvent>` 를 남김 | **체력이 가까이 가도 멀어져도 안 변했다.** 목록을 만드는 시스템이 없어져, 목록을 요구하는 두 시스템 모두 `OnUpdate` 까지 가지 못했다. Claude 가 "이 `RequireForUpdate` 는 항상 참이라 지워도 된다" 고 했는데 **어느 줄을 가리키는지 분명하지 않아** 반대 줄이 지워졌다 (Claude 의 안내 오류). `OnCreate` 는 조건과 상관없이 한 번 돌아서, 만드는 줄은 `OnCreate` 에 있어야 한다 | `CreateSingletonBuffer` 복구 |
+| (실험) 적용 후 `Clear` 를 넣지 않음 | **의도한 실험이다.** 가까이 가면 "초당 1 이 아닌 엄청 빠른 속도로" 깎이고, 범위를 벗어나도 계속 깎였다. 지난 프레임 이벤트가 전부 남아 매 프레임 다시 적용된다. 60fps·초당 1 이면 1초 머무는 동안 총 약 30 이 깎이고, 떠난 뒤에도 프레임마다 1.0 씩 깎인다 (계산) | 루프 **뒤에** `events.Clear()` → 초당 약 1, 떠나면 멈춤 확인 |
+| 목록 Inspector 가 항상 길이 0 | 버그가 아니다. Inspector 는 프레임 끝 상태를 보여 주는데 목록은 같은 프레임 안에서 채워졌다 비워진다. **한 프레임 안에서만 사는 데이터**다 | — |
+| `Step06DeadSystem` 에서 `CurrentHp < 0` | 과제는 "0 이하" 다. 정수 피해였다면 0 에서 멈춘 채 살아 있는 표적이 생긴다 | `<= 0` |
+| 공격 시스템이 `.WithAll<Step06Health>()` 만 봄 | **죽은 표적 자리에 서 있으면 체력이 계속 깎였다.** `Alive` 를 꺼도 `Health` 는 붙어 있고, 쿼리는 `Alive` 를 조건에 넣었을 때만 꺼진 것을 건너뛴다 (5단계 그대로). 헛일이고, 풀링으로 되살릴 때 이미 큰 음수라 바로 다시 죽을 수 있다 | `.WithAll<Step06Health, Alive>()` → 0 이하가 되자마자 멈춤 확인 |
+
+**확인 질문 답**
+
+| # | 처음 답 | 판정 · 왜 | 정리한 답 |
+|---|---|---|---|
+| 1 | "`OnCreate` 는 한 번이라 하나만 만들지만 `OnUpdate` 에 넣으면 프레임마다 만들어진다. 싱글턴은 하나로 약속됐는데 여러 개가 생기면 곧바로 에러" | 이유 ✅. **"여러 개가 생긴다" 는 틀림** — 패키지 소스(`EntityManager.CreateSingleton` 의 `<exception>`)를 확인하니 이미 있으면 **만드는 순간 `InvalidOperationException`** 을 던진다 | 2프레임부터 첫 줄에서 예외 → `OnUpdate` 가 거기서 끝나 입력이 첫 프레임 값에 멈춘다 (5단계 `Run()` 예외와 같은 모양). `CreateEntity` + `AddComponent` 로 만들었다면 정말 여러 개가 쌓이고, 그때는 `GetSingleton`/`SetSingleton` 이 예외를 낸다. `CreateSingleton` 은 그 실수를 만드는 순간 잡아 준다 |
+| 2 | (과제 중 실험으로 확인) | — | 위 표의 `Clear` 실험 |
+| 3 | "적용이 먼저 돌아 이벤트를 `Clear` 하니, 공격이 적은 것이 적용되지 않아 표적이 죽지 않는다" | **✗.** 한 프레임만 봤다. `Clear` 는 **적용한 뒤** 비우는 것이고, 프레임 끝에 적힌 이벤트는 목록(컴포넌트)에 남아 다음 프레임 맨 앞에서 적용된다 | 피해가 **한 프레임 늦게** 들어간다. 사망 판정도 지난 프레임까지의 피해만 본다. 프레임 끝에 목록이 차 있어 Inspector 에 길이가 보인다. 3단계 3번(이전 프레임 위치를 쫓는다)과 같은 종류 — 틀리지는 않아도 밀리고, 순서가 보장되지 않아 바뀔 수 있다 |
+| 4 | (과제 중 실험으로 확인) | 꺼진 표적은 위 표의 마지막 줄. **삭제된 엔티티**는 이번 과제에 없다 | 삭제된 엔티티를 `GetComponentRW` 로 지목하면 예외다. 프로젝트의 `ApplyDamageJob` 은 `HealthLookup.TryGetRefRW` 로 "같은 프레임에 다른 이유로 사라진 대상" 을 건너뛴다 |
+| 5 | "동시에 접근해서 쓰므로 같이 쓰면 안 된다. 한 워커가 길이 1 을 읽었는데 다른 워커가 Add 해 버리면 길이가 2 가 된다" | ✅ (답만 생각해 보는 질문). 보탬: 둘이 **같은 길이를 읽고 같은 칸에 쓰면 한쪽 이벤트가 덮여 사라진다.** 4단계 7번(`Random` 공유)과 같은 레이스다. 실제로는 Unity 안전 검사가 병렬 Job 의 `DynamicBuffer` 쓰기를 막는다 (확인하지 않았다) | 병렬로 쓰려면 워커마다 따로 쓰는 통로가 있는 컨테이너가 필요하다 — `NativeQueue.ParallelWriter`, `NativeStream`, `NativeParallelMultiHashMap.ParallelWriter` (7단계) |
+| 6 | "`deltaTime` 을 곱해야 1초에 1. 바로 넣으면 프레임마다 1 이라 144fps 면 초당 144" | ✅ | 피해가 **프레임 수에 따라 달라진다.** 좋은 컴퓨터에서 적이 빨리 죽고, 프레임이 떨어지는 순간 피해가 흔들린다. 3단계에서 이동에 `deltaTime` 을 곱한 것과 같은 이유 |
+
+**프로젝트 코드와 비교** — [PlayerInputState.cs](../Assets/MyAssets/Scripts/Runtime/Input/PlayerInputState.cs), [PlayerInputSystem.cs](../Assets/MyAssets/Scripts/Runtime/Input/PlayerInputSystem.cs), [DamageEventBus.cs](../Assets/MyAssets/Scripts/Runtime/Combat/DamageEventBus.cs), [DamageApplySystem.cs](../Assets/MyAssets/Scripts/Runtime/Combat/DamageApplySystem.cs), [ContactDamageSystem.cs](../Assets/MyAssets/Scripts/Runtime/Combat/ContactDamageSystem.cs)
+
+| | 내 코드 | 프로젝트 |
+|---|---|---|
+| 입력 싱글턴 | `Step06StudyInputState { float2 Move }` 를 `OnCreate` 에서 `CreateSingleton` | **같다.** 주석: "다른 시스템들이 첫 프레임부터 안전하게 조회할 수 있도록 미리 만들어 둔다" |
+| 입력 읽기 | `Keyboard.current` 의 W/A/S/D | Input System 의 `InputAction`("Player/Move") 을 `OnStartRunning` 에서 찾아 켠다. 게임패드도 된다. 정규화는 길이가 1 을 넘을 때만 (아날로그 스틱 보존) |
+| 입력 시스템 위치 | 기본 그룹 + 이동 쪽 `[UpdateAfter]` | `[UpdateInGroup(typeof(InitializationSystemGroup))]` — 게임플레이 시스템 전체보다 먼저 |
+| 이벤트 목록 | `DynamicBuffer<Step06DamageEvent>` 싱글턴 하나 | `DamageEventBus` — **`NativeStream` 여러 개의 목록**과 `JobHandle`. 피해를 주는 시스템마다 자기 스트림을 **병렬로** 채워 등록한다 (5번 질문의 답) |
+| 목록 소유 | 적용 시스템이 `OnCreate` 에서 만듦 | **같다.** `DamageApplySystem` 이 `OnCreate` 에서 만들고 `OnDestroy` 에서 해제. "생성·해제 책임을 한 곳에 둬야 누수가 안 난다" |
+| 적용 | 메인 스레드 `for` + `GetComponentRW` | 스트림마다 `IJob` 을 **직렬로** 이어 예약, `ComponentLookup<Health>.TryGetRefRW` 로 사라진 대상은 건너뜀. 적용 후 스트림 해제도 Job 으로 예약 |
+| 왜 바로 깎지 않나 | 이벤트로 분리 (이번 단계의 요점) | 주석: "같은 적을 두 투사체가 동시에 맞히면 두 워커가 같은 `Health` 를 쓰는 레이스. 1만 이벤트도 단일 스레드 적용은 0.1ms 수준이라 병렬화할 이유가 없다" |
+| 사망 | `Step06DeadSystem` 이 0 이하면 끔 | `EnemyDeathSystem` — 적용과 사망을 분리. "대상별 사망 규칙을 따로 붙일 수 있다" |
+| 피해 만들기 | 메인 스레드에서 전 표적과 거리 비교 | `ContactDamageSystem` 은 병렬 Job 으로 닿은 적을 모으고, 단일 Job 으로 **가장 큰 피해 하나만** 보낸 뒤 무적을 건다 (병렬에서 "하나만" 고르면 레이스) |
+
+**배운 것 / 다음에 다르게**
+- 시스템은 서로를 부르지 않는다. **데이터를 써 두고 읽는다.** 피해 적기 / 적용 / 사망을 나누니 각 시스템이 다른 시스템을 전혀 모른다.
+- 이벤트는 **한 프레임 안에서만 사는 데이터**다. 처리했으면 비운다. 비우지 않으면 지난 일이 매 프레임 다시 일어난다 (직접 봤다).
+- 엔티티가 스스로 행동한다고 생각하면 설계가 막힌다 ("타겟이 이벤트를 발생시킨다"). "어떤 시스템이 어떤 데이터를 보고 무엇을 쓰는가" 로 묻는다.
+- `GetSingleton` 이 값(사본)이라는 것은 이번에 바로 맞혔다. 5단계에서 세 번 막힌 지점이 풀렸다.
+- Claude 의 안내 문제: 이름 짝을 슬래시로 나열하거나 "이 줄" 처럼 가리키면 **반대로 읽힌다** (이번에 두 번). 바꿀 이름은 "지금 이름 → 새 이름" 한 줄씩, 지울 줄은 코드로 그대로 보여 준다.
+
+---
+
+## 7단계 — NativeContainer 와 공간 해시
+
+### 7.1 개념
+
+**왜 필요한가**
+6단계의 `Step06PlayerAttackSystem` 은 표적 **전부**와 거리를 비교한다. 표적이 1만 개면 매 프레임 1만 번이다. 플레이어 하나가 아니라 적 1만 개가 **서로**를 피해야 한다면 1만 × 1만 = 1억 번이다 (3단계 6번 질문에서 남겨 둔 "추격자가 한 점에 겹친다" 문제). 가까운 것만 보면 된다.
+
+**공간 해시**
+바닥을 한 변 `CellSize` 인 칸으로 나누고, 매 프레임 각 표적을 **자기가 있는 칸**에 넣어 둔다. 찾을 때는 플레이어가 있는 칸과 **주변 칸만** 본다.
+
+```
+칸 좌표 = floor(위치 / CellSize)          예: CellSize 1, 위치 (2.7, -0.3) → 칸 (2, -1)
+반경 r 안을 찾으려면 → 플레이어 칸에서 ceil(r / CellSize) 칸까지만 본다
+```
+
+비교 횟수가 "전체 표적 수" 가 아니라 "주변 칸에 든 표적 수" 가 된다.
+
+**NativeContainer**
+칸마다 "그 칸에 든 엔티티들" 을 담을 자료구조가 필요하다. 컴포넌트에는 길이가 변하는 목록을 직접 둘 수 없고 (6단계 `DynamicBuffer` 는 엔티티 하나에 붙는 것), Burst·Job 에서는 C# 의 `List`·`Dictionary` 를 못 쓴다 (매니지드). 그래서 Unity 의 **Native 컨테이너**를 쓴다.
+
+| 컨테이너 | 모양 |
+|---|---|
+| `NativeArray<T>` | 길이 고정 배열 |
+| `NativeList<T>` | 길이가 늘어나는 배열 |
+| `NativeParallelMultiHashMap<TKey, TValue>` | 키 하나에 값 **여러 개**. 공간 해시는 키 = 칸, 값 = 그 칸의 엔티티들 |
+
+- **메모리를 직접 관리한다.** 만들 때 `Allocator` 를 정하고, 다 쓰면 **`Dispose()`** 해야 한다. 안 하면 누수다 (Leak Detection 이 켜져 있으면 경고가 뜬다).
+  | Allocator | 수명 |
+  |---|---|
+  | `Temp` | 이번 프레임 안, 같은 함수 안에서만 |
+  | `TempJob` | Job 에 넘겨 4프레임 안에 해제 |
+  | `Persistent` | 직접 해제할 때까지 (시스템 `OnCreate` 에서 만들고 `OnDestroy` 에서 해제) |
+- **병렬로 쓰려면 `ParallelWriter`.** 6단계 5번 질문의 답이다. `map.AsParallelWriter()` 로 받은 쓰기 통로는 여러 워커가 동시에 `Add` 해도 안전하다. 대신 **용량을 미리 확보해야 한다** (병렬 쓰기 중에는 늘릴 수 없다).
+
+**ECS 가 모르는 의존성**
+컴포넌트는 ECS 가 "누가 읽고 쓰는지" 를 추적해 Job 순서를 자동으로 맞춘다 (4단계). 하지만 시스템이 따로 들고 있는 Native 컨테이너는 **ECS 가 모른다.** 해시를 채우는 Job 이 끝나기 전에 읽는 쪽이 돌면 안 되므로, `JobHandle` 로 직접 순서를 잇거나 메인 스레드에서 `Complete()` 하고 읽는다.
+
+### 7.2 과제
+
+**목표**: 6단계 씬의 "반경 안 표적 찾기" 를 **공간 해시**로 바꾸고, 전부 비교하는 방식과 **비교 횟수·시간**을 견준다.
+
+**파일 구조는 직접 설계한다.** 6단계 파일은 수정하지 않는다. `Step07` 에 새로 만들고, 6단계의 컴포넌트(`Step06Health`, `Step06PlayerAttack`, `Step06DamageEvent` 등)는 가져다 써도 된다.
+
+**조건**
+- **(해시 만들기)** 매 프레임 살아 있는 표적을 칸별로 `NativeParallelMultiHashMap` 에 넣는다. 처음에는 메인 스레드 `foreach` 로, 동작을 확인한 뒤 **`IJobEntity` + `ParallelWriter`** 로 바꾼다
+- **(찾기)** 플레이어 칸과 주변 칸만 보고 반경 안의 표적에 이벤트를 적는다. 적용·사망은 6단계 시스템을 그대로 쓴다
+- 해시 컨테이너는 시스템이 `OnCreate` 에서 `Persistent` 로 만들고 **`OnDestroy` 에서 `Dispose`** 한다
+- `CellSize` 는 상수 또는 설정 컴포넌트로 (시스템 안에 숫자를 박지 않는다)
+- **6단계 공격 시스템과 같은 씬에서 함께 돌면 안 된다** (피해가 두 번 들어간다). 어떻게 분리할지는 직접 정한다
+- **비교 횟수를 센다.** 한 프레임에 거리 비교를 몇 번 했는지 `Debug.Log` 등으로 찍어 6단계 방식과 견준다 (Burst 안에서 `Debug.Log` 는 문자열 보간을 제한적으로만 지원하니 막히면 물어볼 것)
+- 측정: 표적 Count 10,000 에서 6단계 방식과 7단계 방식의 시스템 시간을 Profiler 로 비교한다 (5단계처럼 캡처를 저장하면 Claude 가 읽는다)
+
+**API 힌트** (이름만 줌)
+- `NativeParallelMultiHashMap<int, Entity>`, `Allocator.Persistent`, `.Clear()`, `.Capacity`, `.Dispose()`
+- `.AsParallelWriter()`, `.Add(key, value)`
+- `.TryGetFirstValue(key, out value, out iterator)`, `.TryGetNextValue(out value, ref iterator)`
+- `math.floor`, `(int2)`, `math.hash(int2)` — 칸 좌표를 키(`int`)로 바꾸기
+- `state.Dependency`, `JobHandle.Complete()`
+- 쿼리의 엔티티 수: `SystemAPI.QueryBuilder()…Build()`, `query.CalculateEntityCount()`
+
+**씬 작업**
+1. `Scenes/Step07/Step07.unity` + SubScene. 6단계 씬과 같은 구성 (플레이어 + 표적 스포너)
+2. 처음에는 Count 100 으로 동작을 확인하고, 측정할 때 10,000 으로 올린다 (Range 도 넓힌다)
+
+**확인 질문**
+1. `CellSize` 를 아주 작게(0.1) 하면, 아주 크게(100) 하면 각각 무엇이 나빠지는가?
+2. 칸 좌표를 `(int)(위치 / CellSize)` 로 구하면 `floor` 와 무엇이 다른가? 위치 -0.5 와 0.5 로 확인해 보라
+3. 서로 다른 칸이 `math.hash` 로 **같은 키**가 되면 무슨 일이 생기는가? 여러 칸을 도는 찾기에서 특히 무엇이 문제인가?
+4. `ParallelWriter` 로 쓰기 전에 용량을 확보하지 않으면 어떻게 되는가?
+5. 해시를 채우는 Job 을 예약한 직후 같은 프레임에 메인 스레드에서 해시를 읽으면 무슨 일이 생기는가? 어떻게 막는가?
+6. 매 프레임 해시를 전부 비우고 다시 채운다. 움직인 표적만 고치는 것보다 나쁜가?
+
+### 7.3 결과 / 배운 것
+
+> 과제를 마치면 여기에 적는다. **측정 표를 반드시 포함한다** (방식 / 비교 횟수 / ms / Count / CPU / Jobs 메뉴 상태).

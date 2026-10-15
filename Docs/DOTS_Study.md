@@ -20,11 +20,11 @@
 
 | | |
 |---|---|
-| **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08), 5단계 (2026-10-13), 6단계 (2026-10-14) |
-| **지금** | **7단계 — NativeContainer 와 공간 해시 (마지막 단계).** 2026-10-14 에 시작했다. `Scripts/Step07/`: `Step07PlayerTag`, `Step07PlayerAuthoring`(태그만 7단계, `MoveSpeed`·`Step06PlayerAttack` 재사용), `Step07PlayerMoveSystem`(6단계 이동 복사), `Step07MappingSystem`. 씬 `Scenes/Step07/Step07.unity` (플레이어 + `StudyCubeTarget` 스포너 Count 100, Range 15). **`Step07MappingSystem` 은 해시 채우기(메인 스레드 `foreach`)가 동작하고**(`_map.Count()` 가 100 → 표적이 죽을 때마다 줄어드는 것 확인), **찾기는 주변 칸을 도는 이중 `for` 와 키 계산까지** 썼다. 칸 안의 엔티티를 꺼내는 `TryGetFirstValue`/`TryGetNextValue`, 거리 비교, `events.Add`, 비교 횟수 세기가 남았다. 컴파일은 로그 기준 통과. 6단계는 `d8b7447` 에 커밋됐고, 7단계 전체는 미커밋 |
-| **다음 행동** | **설명은 짧게, 한 번에 하나만. 값 하나를 줄 단위로 따라가는 표가 통한다 (7단계에서도 "칸 (4, -2) 의 3×3" 표로 루프 범위를 바로 고쳤다). 막히면 빈칸 뼈대를 준다.** ① `Step07MappingSystem` 의 안쪽 루프에 `TryGetFirstValue`/`TryGetNextValue` (모양은 이미 보여 줬다) → `GetComponent<LocalTransform>(target)` 로 위치 → `distancesq` vs `Range²` → `events.Add`(`Amount = DamagePerSecond × deltaTime`, **`deltaTime` 을 아직 안 받았다**) ② 비교 횟수를 세서 `Debug.Log` — 표적 무리 한가운데와 빈 곳에서 각각 보게 한다 (6단계는 매 프레임 살아 있는 표적 수만큼) ③ 6단계처럼 깎이고 죽는지 확인 ④ 해시 채우기를 `IJobEntity` + `ParallelWriter` 로 옮긴다 — 용량 확보(`Capacity`)와 "채우는 Job 이 끝난 뒤 읽기"(확인 질문 4·5번)가 여기서 나온다 ⑤ Count 10,000 측정 (6단계 씬 vs 7단계 씬) ⑥ 확인 질문 6개 ⑦ 학습 마무리: CLAUDE.md 0.1절 삭제, M3 복귀. 마무리 전에 학습 전체 요약을 할지 사용자에게 묻는다 |
+| **완료** | 1단계 (2026-10-01), 2단계 (2026-10-02), 3단계 (2026-10-07), 4단계 (2026-10-08), 5단계 (2026-10-13), 6단계 (2026-10-14), **7단계 (2026-10-15) — 커리큘럼 전체 완료** |
+| **지금** | **학습 종료 (2026-10-15).** 7단계까지 마쳤고 마무리 절차도 끝났다: 전체 요약 [DOTS_Study_Summary.md](DOTS_Study_Summary.md) 작성, CLAUDE.md 0.1절을 "끝난 학습" 안내로 교체, WorkLog 2026-10-15 엔트리에 학습 기간과 프로젝트 범위 결정(M3 완료 + 빌드 실측으로 일단락, M4 이후는 3D 우주 슈터 확장판) 기록 |
+| **다음 행동** | 이 노트는 더 갱신하지 않는다. 본 작업은 CLAUDE.md 0절 절차(WorkLog·IssueLog 먼저 읽기)로 이어 간다 |
 | **측정 메모** | 4단계에서 **CPU 모델·코어 수와 Jobs 메뉴 상태(Safety Checks 등)를 기록하지 못했다.** 5단계 측정에서는 첫 측정 전에 같이 적는다. 4단계 확인 질문 6번(Count 100 에서 B 와 D)은 **측정하지 않고** 예상으로만 답했다 — 선택 사항으로 남아 있다. **에디터 로그는 프로젝트의 `Logs/Editor.log` 에 쓰인다** (2026-10-12 확인). `AppData/Local/Unity/Editor/Editor.log` 는 갱신되지 않는 옛 파일이다. CLAUDE.md 3.2절의 경로는 2026-10-13 에 고쳤다 |
-| **확인할 것** | 에디터가 **관리자 권한**으로 켜져 있으면 `unity-recompile.sh` 가 exit 3 으로 연결되지 않는다 (2026-10-14 종일. 창 제목 "Administrator: …". 원인은 추정). 그때는 `Logs/Editor.log` 의 `Tundra build success/failed` 줄과 **파일 저장 시각**을 비교해 확인한다 — 로그가 저장보다 이르면 아직 컴파일 전이다 (에디터에 포커스가 없으면 자동 컴파일이 안 돈다) |
+| **확인할 것** | `unity-recompile.sh` exit 3 이나 `unity command` 타임아웃이 나면 **포트부터** 본다 — [ISSUE-015](IssueLog.md#issue-015). 2026-10-14 에 "관리자 권한 때문" 이라고 적었던 것은 틀린 추정이었다 (재부팅 뒤 관리자 권한 그대로 정상 연결) |
 | **본 작업** | M3 는 학습이 끝날 때까지 멈춤. 상태는 [WorkLog.md](WorkLog.md) 의 현재 위치 블록 참조 |
 
 ### Claude 가 지킬 진행 규칙 (사용자와 합의한 것, 2026-10-01)
@@ -54,7 +54,7 @@
 | 4 | Job·Burst (`IJobEntity`, `ScheduleParallel`, 의존성) | 3단계를 병렬로, Profiler 비교 | ISSUE-006, `PlayerPosition` | ✅ 2026-10-08 |
 | 5 | 구조적 변경, ECB, Enableable 컴포넌트 | 생성·삭제 vs 풀링 | `Active`, `PoolUtility` | ✅ 2026-10-13 |
 | 6 | 싱글턴, 시스템 간 통신 | 입력 싱글턴, 데미지 이벤트 | `PlayerInputState`, `DamageEventBus`, `DamageApplySystem` | ✅ 2026-10-14 |
-| 7 | NativeContainer, 공간 해시 | 반경 안 표적 찾기를 공간 해시로 | `EnemySpatialHash`, `BuildEnemySpatialHashSystem` | ⏳ 진행중 (해시 채우기 완료, 찾기 중간) |
+| 7 | NativeContainer, 공간 해시 | 반경 안 표적 찾기를 공간 해시로 | `EnemySpatialHash`, `BuildEnemySpatialHashSystem` | ✅ 2026-10-15 |
 
 ---
 
@@ -1137,9 +1137,9 @@ health.ValueRW.Current -= amount;
 
 ### 7.3 결과 / 배운 것
 
-> 과제를 마치면 여기에 적는다. **측정 표를 반드시 포함한다** (방식 / 비교 횟수 / ms / Count / CPU / Jobs 메뉴 상태).
+**완료: 2026-10-15.** 10-14 에 해시 채우기와 찾기 루프까지, 10-15 에 찾기 완성·Job 전환·측정·확인 질문을 마쳤다. 7단계 씬에서 플레이어가 다가가면 표적이 6단계와 똑같이 깎이고 죽는 것을 눈으로 확인했다.
 
-**진행 중 기록 (2026-10-14)** — 6단계를 마친 날 이어서 시작했다. 해시 채우기 완료, 찾기는 루프와 키 계산까지.
+**첫날 기록 (2026-10-14)** — 6단계를 마친 날 이어서 시작했다. 해시 채우기 완료, 찾기는 루프와 키 계산까지.
 
 **작성 경위**
 - 첫걸음은 "컨테이너를 만들고 버리기" 만 줬다 (`OnCreate` 에서 `Persistent` 로 만들고 `OnDestroy` 에서 `Dispose`). 빈칸 하나짜리 뼈대를 주자 바로 썼다.
@@ -1155,3 +1155,72 @@ health.ValueRW.Current -= amount;
 | `using log4net.Util;` | IDE 자동완성이 넣었다. 안 쓰고, 에디터 전용 라이브러리라 빌드에서 깨질 수 있다 | 삭제 |
 | 플레이어 칸 계산을 건너뜀 | 주변 칸을 돌려면 중심 칸이 먼저 필요하다 | 표적 칸과 같은 식 |
 | `for (dy = 0; dy <= cellRange…)` 안에 `for (dx = dy; dx <= cellRange…)` | `cellRange` 1 이면 (0,0), (1,0), (1,1) **3칸만** 본다. 시작이 0 이라 왼쪽·아래 칸을 전혀 안 보고, 안쪽이 `dy` 부터라 오른쪽 위 삼각형만 남는다. 플레이어 왼쪽·아래에 붙은 표적은 피해를 안 입는다. 컴파일러는 못 잡는다. "칸 (4, -2) 의 3×3" 표로 어느 칸이 빠지는지 보이자 바로 고쳤다 | 둘 다 `-cellRange` ~ `+cellRange` (1 이면 9칸, 3 이면 49칸) |
+
+**측정 (2026-10-15)** — 에디터 Play 모드. 확인 질문과 해석은 아직이다.
+
+조건 (에디터에 직접 질의): Intel Core i7-10700 (물리 8 / 논리 16), 워커 15, Burst 켜짐, **Safety Checks 켜짐, Jobs Debugger 켜짐, Leak Detection Enabled**. 두 씬 모두 표적 Count 10,000, Range 50, 공격 반경 3, `CellSize` 1 (→ `cellRange` 3, 7×7 = 49칸). 플레이어는 무리 안쪽에 가만히. 7단계는 **해시 채우기만 `IJobEntity` + `ParallelWriter`, 바로 `state.Dependency.Complete()` 후 메인 스레드에서 찾기** 구조다.
+
+출처: 사용자가 저장한 `ProfilerCaptures/…_2026-10-15_15-02-23.data` (6단계 씬), `…_15-02-56.data` (7단계 씬) 를 `ProfilerDriver.LoadProfile` 로 읽은 **마지막 60프레임 중앙값** (ms). 두 캡처는 섞이지 않았다 — 각자 다른 씬의 시스템이 0.0006 ms 이하(`RequireForUpdate` 로 안 돎)로 나온다.
+
+| 항목 | 6단계 (전부 비교) | 7단계 (공간 해시) |
+|---|---|---|
+| 메인 스레드: 찾기 시스템 | `Step06PlayerAttackSystem` **0.046** | `Step07MappingSystem` **0.112** |
+| 그중 `JobHandle.Complete` 대기 | — | 0.093 (그 안에서 메인 스레드가 `TargetMappingJob` 조각 하나를 직접 실행 0.079) |
+| 워커: `TargetMappingJob (Burst)` | — | 조각 15개, 전체 길이 0.084, **조각 합계 1.18** |
+| `Step06DeadSystem` (참고) | 0.035 | 0.041 |
+| `SimulationSystemGroup` | 0.94 | 1.11 |
+| 프레임 전체 | 6.22 | 5.95 |
+
+- **7단계가 메인 스레드 기준 약 2.4배 느리다** (0.112 vs 0.046). CPU 총량으로는 약 1.3 vs 0.046 이다.
+- 프레임 전체는 7단계가 더 짧게 나왔지만 차이(0.27)가 시스템 차이보다 작고 반대 방향이라 **잡음으로 본다.**
+- **비교 횟수** (사용자가 콘솔에서 읽음): 7단계는 무리 안쪽에서 **53**, 반경 안 표적이 죽은 뒤 **20**. 6단계는 매 프레임 살아 있는 표적 수(10,000). 계산 예상은 칸당 평균 약 1.3개(10,000 ÷ 반경 50 원 넓이 약 7,850) × 49칸 ≈ 62개였다. 죽은 뒤 남은 20은 **정사각형 49칸 안이지만 원 밖**에 있어 피해를 받지 않고 계속 검사만 되는 후보다 (원 넓이 약 28 / 정사각형 49 → 약 21칸 몫 ≈ 27개 예상).
+
+**둘째 날 기록 (2026-10-15)** — 찾기 완성, 해시 채우기를 Job 으로, 측정, 확인 질문.
+
+**작성 경위**
+- 혼자 쓴 것: 칸 안의 표적을 꺼내 거리 비교 → `events.Add` (`deltaTime` 을 루프 밖에서 받음), 비교 횟수 세기, `TargetMappingJob`(`IJobEntity` + `ParallelWriter`), 용량 확보와 예약.
+- 문법 예시를 받은 것: `TryGetFirstValue`/`TryGetNextValue` 의 `do-while`(첫날), `NativeParallelMultiHashMap<int, Entity>.ParallelWriter` 필드, `CalculateEntityCountWithoutFiltering()` 한 줄, `state.Dependency.Complete()`.
+- 이날 오전까지 `unity command` 가 에디터에 닿지 않아 캡처를 읽지 못했다. 원인은 다른 프로세스가 `127.0.0.1:7800` 을 잡고 있던 것이었고 재부팅으로 풀렸다 → [ISSUE-015](IssueLog.md#issue-015). 전날 "관리자 권한 때문" 이라고 한 것은 **틀린 추정**이었다.
+
+**틀렸다가 고친 것 / 일부러 본 것**
+
+| 처음 쓴 것 | 왜 / 실행하면 | 고친 것 |
+|---|---|---|
+| (질문) "반경 안쪽 엔티티는 다 사라져야 하는 것 아닌가? 사라지는 것도 있고 안 사라지는 것도 있다" | 버그가 아니었다. ① `compareCount` 는 **검사한 후보 수**다. 보는 칸은 정사각형(7×7)이고 피해 범위는 원이라, 후보 중 약 40% 는 원 밖이다 (넓이 28 / 49, 계산) ② 체력 3, 초당 1 이라 원 안에 **누적 3초**를 있어야 죽는다. 원 가장자리는 들락날락하며 덜 깎인다. 사용자가 "정사각형으로 칸을 봐서 그렇다" 고 스스로 정리했다 | — |
+| (실험) 해시 채우기를 `ScheduleParallel` 로 예약하고 바로 아래에서 메인 스레드가 `_map` 을 읽음 | **의도한 실험이다.** 매 프레임 예외(677건): `InvalidOperationException: The previously scheduled job TargetMappingJob writes to the NativeParallelMultiHashMap … You must call JobHandle.Complete() on the job TargetMappingJob, before you can read from the NativeParallelMultiHashMap`. 사용자가 원인을 먼저 맞혔다 ("Job 들이 동시에 도는데 아래에서 `_map` 을 쓰고 있다"). 보정: **이벤트 목록은 상관없다** — Job 이 만지는 것은 `Writer` 와 `LocalTransform` 뿐이다. 4단계와 다른 점: 컴포넌트는 ECS 가 알아서 **기다려 줬지만**, 시스템이 직접 든 컨테이너는 ECS 가 몰라서 **에러로 막는다** | 읽기 전에 `state.Dependency.Complete()` |
+| (질문) "모든 Job 이 끝날 때까지 기다리면 메인 스레드에 뭐가 좋아지나? 계산이 분리돼서?" | 기다리는 것은 같지만 **기다리는 시간이 짧아진다** (여럿이 나눠 끝내므로). 대신 바로 `Complete` 하면 "예약해 두고 다른 일" 이라는 Job 의 장점은 버리고, 일이 작으면 준비 비용 때문에 오히려 손해다. 프로젝트는 찾는 쪽도 Job 으로 만들고 Job 끼리 줄을 세워 메인 스레드가 기다리지 않는다 | — |
+
+**측정 해석** (측정 표는 위 "측정 (2026-10-15)")
+- 비교 횟수는 10,000 → 53 (약 190배 감소)인데 **시간은 2.4배 늘었다.** 처음 예상과 반대였다 (Claude 도 이만큼 차이 날 줄은 몰랐다).
+- 사용자에게 "공간 해시가 이득이 되려면 무엇이 달라져야 하나, 3단계 겹침 문제에서는 **누가** 찾아야 했나" 를 물었고, "추격자가 자기 주변 추격자들의 위치를 알아야 했다" 고 답했다 ✅.
+- 정리: 해시를 만들려면 **표적 1만 개를 전부 한 번씩** 만져야 하고, 넣는 일(칸 계산·해시·컨테이너 쓰기)은 거리 비교 한 번보다 무겁다. 찾는 쪽이 **1명**이면 만드는 비용만으로 전부 비교와 같아져 진다. 찾는 쪽이 **1만 명**이면 해시는 한 번 만들고 같이 쓴다: 전부 비교 1억 번 vs 해시 약 60만 번 (계산, 약 160배). **공간 해시는 만드는 비용을 여러 번의 찾기가 나눠 낼 때 이득이다.**
+
+**확인 질문 답**
+
+| # | 처음 답 | 판정 · 왜 | 정리한 답 |
+|---|---|---|---|
+| 1 | "칸이 작으면 해시맵 크기가 늘어 더 정교하지만 미리 확보할 용량이 늘고, 크면 용량은 줄지만 위치를 제대로 확보하기 어렵다". 계산: 0.1 → "30, 900", 100 → "0.03, 0.0009" | 방향 일부 ✅. **"용량이 늘어난다" ✗** — 해시에 들어가는 것은 표적당 하나라 칸 크기와 상관없이 1만 개다. 빈칸은 해시에 안 들어간다. **계산 ✗** — 보는 칸 수는 (2·30+1)² = 3,721 (30² 아님), `ceil(0.03)` = 1 → 3×3 = 9칸 | 작으면 한 번 찾을 때 **3,721칸 조회**, 대부분 빈칸 (칸당 약 0.013개). 크면 9칸에 **표적 거의 전부**가 몰려 전부 비교와 같아지고 해시 비용만 더 든다. 칸 크기는 찾는 반경·물체 간격과 비슷하게 (프로젝트: 적 반경의 4배) |
+| 2 | "`floor` 는 내림이고, `(int)` 로 캐스팅하면 둘 다 0?" | ✅ | `(int)` 는 0 쪽으로 자른다. -0.5 → `floor` -1, `(int)` 0. 0번 칸만 폭이 2 가 되어 2D 에서 칸 (0,0) 은 넓이 4배. 이 씬은 표적이 **원점 중심**이라 가장 붐비는 칸이 넓어진다. 지금 코드는 칸이 넓어질 뿐이라 놓치지는 않고 후보만 늘지만, 칸 크기가 같다고 가정하는 코드는 틀린다 |
+| 3 | ① "중복이 안 되니 예외? 안 나면 보이지 않는 버그?" ② "(-7,1) 이 조회돼? 그럼 당연히 문제" ③ "두 번 처리하겠네" | ① **✗** — Multi 해시맵은 키 하나에 값 여러 개가 원래 쓰임새라 예외 없이 **한 바구니에 섞인다** (안 보이는 버그인 건 맞다). ② △ — 섞여 나오지만 **거리 비교가 걸러서** 지금 코드에선 결과가 맞고 비교만 늘어난다. ③ ✅ — 두 칸을 다 조회하면 같은 바구니를 **두 번** 꺼내 피해가 두 배 | 조회 중인 칸에 정말 있는지 다시 확인한다 (프로젝트 `EnemySpatialHash.IsInCell`, 이 문제를 실제로 겪은 것이 [ISSUE-011](IssueLog.md#issue-011)). 이번 과제는 49칸이라 확률이 낮아 넣지 않았다 |
+| 4 | "`Add` 는 용량이 부족하면 알아서 늘려 줬는데, 동시에 작업하다 용량이 부족하면 계산을 못 하는 Job 이 생겨 결과가 이상해지나?" | ✅. 보탬: 늘리기 = 새 메모리 잡고 전부 옮기고 옛 것 버리기라, 다른 워커가 옛 메모리에 쓰는 중이면 망가진다 (5단계 구조적 변경과 같은 문제). 그래서 `ParallelWriter` 는 아예 안 늘린다. 패키지 소스: 가득 차면 `ThrowFull()` → `InvalidOperationException("HashMap is full")`, 단 `[Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]` 라 **빌드에서는 검사 자체가 빠져** 조용히 틀린다 | 쓰기 전에 표적 수만큼 `Capacity` 확보. `WithoutFiltering` 은 꺼진 표적까지 센 상한이라 되살아나도 모자라지 않는다 |
+| 5 | (실험으로 확인) | 위 표 | `Complete()` 하고 읽거나, 읽는 쪽도 Job 으로 만들어 의존성을 잇는다 |
+| 6 | "이전 위치를 담을 버퍼가 필요하겠네. 그럴 거면 버리고 다시 넣는 게 빠르지 않을까?" | ✅ | 게임의 적은 거의 전부 매 프레임 움직여서, 움직인 것만 고쳐도 결국 거의 전부를 빼고 넣는다. 거기에 옛 칸 기억, 바구니에서 찾아 빼기, 병렬 처리의 복잡함이 더해진다. 프로젝트 주석: "부분 갱신은 어느 셀에서 빠졌나를 추적하는 비용이 더 크다". 반대로 거의 안 움직이는 것(지형 등)은 한 번 만들어 두는 편이 낫다 |
+
+**프로젝트 코드와 비교** — [EnemySpatialHash.cs](../Assets/MyAssets/Scripts/Runtime/Spatial/EnemySpatialHash.cs), [BuildEnemySpatialHashSystem.cs](../Assets/MyAssets/Scripts/Runtime/Spatial/BuildEnemySpatialHashSystem.cs), [SpatialQueries.cs](../Assets/MyAssets/Scripts/Runtime/Spatial/SpatialQueries.cs)
+
+| | 내 코드 | 프로젝트 |
+|---|---|---|
+| 컨테이너 | `NativeParallelMultiHashMap<int, Entity>` 를 시스템 **필드**로 | 같은 컨테이너를 **싱글턴 컴포넌트**(`EnemySpatialHash`)에 담아 시스템 엔티티에 붙임 — 다른 시스템들(추격·투사체)이 같이 읽기 위해서 |
+| 값 | `Entity` 만 → 찾을 때 `GetComponent<LocalTransform>(target)` | `AgentRef { Entity, Position, Radius }` — 위치를 **복사해 담는다**. 주석: 찾는 Job 이 다른 적의 `LocalTransform` 을 읽으면 자기 `LocalTransform` 에 쓰는 것과 충돌해 병렬화가 막힌다 |
+| 칸 좌표 | `(int2)math.floor(pos / CellSize)` | **같다** (`CellOf`). 주석에 `(int)` 로 자르면 -0.5 와 0.5 가 같은 칸이 된다고 적혀 있다 (확인 질문 2번) |
+| 키 충돌 | 처리 안 함 | `IsInCell` 로 거른다 (확인 질문 3번, ISSUE-011) |
+| 용량 | `CalculateEntityCountWithoutFiltering` 으로 확보 | **같다.** "WithoutFiltering = Active 무시한 풀 전체 수. 상한으로 충분" |
+| 읽기 동기화 | 예약 직후 `Complete()` | `BuildHandle`(채우기 완료)을 찾는 Job 의 의존성으로 걸고, `ReadersHandle` 로 다음 프레임 `Clear` 가 지난 프레임 읽기 뒤에 오게 한다. **메인 스레드가 기다리지 않는다** |
+| 찾는 쪽 | 플레이어 1명 → 전부 비교보다 느렸다 | 적 1만 마리의 겹침 해소, 투사체 적중 등 **찾는 쪽이 많다** — 이번 측정이 보여 준 "이득이 되는 조건" 그대로다 |
+
+**배운 것 / 다음에 다르게**
+- Native 컨테이너는 가비지 컬렉터 밖이라 **만든 쪽이 `Dispose` 한다.** `OnCreate` ↔ `OnDestroy`.
+- `ParallelWriter` 는 동시에 써도 안전한 대신 **늘어나지 않는다.** 용량은 쓰기 전에.
+- ECS 는 컴포넌트의 의존성만 추적한다. 시스템이 든 컨테이너는 **직접** `Complete` 하거나 핸들을 잇는다.
+- **비교 횟수가 190배 줄어도 더 느릴 수 있다.** 자료구조를 만드는 비용을 누가 나눠 내는지가 승패를 가른다. "공간 해시가 빠르다" 가 아니라 "찾는 쪽이 N 개일 때 N² 을 피한다" 로 말한다.
+- 추정을 사실처럼 말하지 않는다 (ISSUE-015 의 "관리자 권한 때문").

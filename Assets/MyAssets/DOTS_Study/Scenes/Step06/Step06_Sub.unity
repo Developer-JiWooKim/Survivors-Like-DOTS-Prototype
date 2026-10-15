@@ -152,6 +152,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Survivors.Study::Assets.MyAssets.DOTS_Study.Scripts.Step06.Step06PlayerAuthoring
   _moveSpeed: 10
+  _range: 3
+  _damagePerSeconds: 1
 --- !u!135 &656778220
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -275,9 +277,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Survivors.Study::Assets.MyAssets.DOTS_Study.Scripts.Step02.SpawnerAuthoring
   _prefab: {fileID: 9097049068741953112, guid: 46dfb68f0eb9f984482ef6bbf26e5a48, type: 3}
-  _count: 100
+  _count: 10000
   _seed: 1
-  _range: 15
+  _range: 50
   _minRadiansPerSecond: 30
   _maxRadiansPerSecond: 360
 --- !u!4 &1340509372

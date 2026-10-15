@@ -52,7 +52,7 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step07
             int2 playerCell = (int2)math.floor(playerPosition / CellSize);
             float deltaTime = SystemAPI.Time.DeltaTime;
 
-            int compareCount = 0;
+            // int compareCount = 0;
             for (int dy = -cellRange; dy <= cellRange; dy++)
             {
                 for (int dx = -cellRange; dx <= cellRange; dx++)
@@ -64,7 +64,7 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step07
                     {
                         do
                         {
-                            compareCount++;
+                            // compareCount++;
                             float3 targetPos = SystemAPI.GetComponent<LocalTransform>(target).Position;
                             if (math.distancesq(targetPos, playerPos) < attack.Range * attack.Range)
                             {
@@ -76,7 +76,7 @@ namespace Assets.MyAssets.DOTS_Study.Scripts.Step07
             }
 
 
-            UnityEngine.Debug.Log(compareCount);
+            // UnityEngine.Debug.Log(compareCount);
         }
 
         [BurstCompile]

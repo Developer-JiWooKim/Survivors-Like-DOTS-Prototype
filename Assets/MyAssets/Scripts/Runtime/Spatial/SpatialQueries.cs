@@ -126,6 +126,58 @@ namespace Assets.MyAssets.Scripts.Runtime.Spatial
             return false;
         }
 
+        /// <summary>
+        /// <paramref name="origin"/> 에서 중심 거리 <paramref name="range"/> 안에 있고 <paramref name="exclude"/> 에 없는
+        /// **가장 가까운** 적 하나. 전격 사슬의 첫 타겟과 다음 연쇄 대상을 찾는 데 쓴다.
+        ///
+        /// <see cref="FindNearest"/> 와 따로 둔 이유: 그쪽은 위치만 돌려주고(조준용) 제외 목록이 없다.
+        /// 연쇄는 "이미 맞은 적은 빼고" 와 "누구를 맞혔나(Entity)" 가 둘 다 필요하다.
+        /// 연쇄 거리가 짧고(4u → 9×9 칸) 초당 몇 번만 불리므로 고리 조기 종료 없이 사각형을 다 훑는다.
+        /// </summary>
+        public static bool TryFindNearestExcluding(
+            in NativeParallelMultiHashMap<int, AgentRef> map, float2 origin, float range,
+            ref FixedList128Bytes<Entity> exclude, out AgentRef found)
+        {
+            found = default;
+            float bestDistanceSquared = range * range;
+            bool any = false;
+
+            int2 center = EnemySpatialHash.CellOf(origin);
+            int cells = (int)math.ceil(range / EnemySpatialHash.CellSize);
+
+            for (int y = -cells; y <= cells; y++)
+            {
+                for (int x = -cells; x <= cells; x++)
+                {
+                    int2 cell = center + new int2(x, y);
+                    if (!map.TryGetFirstValue(EnemySpatialHash.KeyOf(cell), out AgentRef agent, out NativeParallelMultiHashMapIterator<int> iterator))
+                    {
+                        continue;
+                    }
+
+                    do
+                    {
+                        // 키 충돌로 섞여 든 다른 셀의 적은 그 셀을 볼 때 따로 본다.
+                        if (!EnemySpatialHash.IsInCell(agent, cell))
+                        {
+                            continue;
+                        }
+
+                        float distanceSquared = math.distancesq(origin, agent.Position);
+                        if (distanceSquared <= bestDistanceSquared && !exclude.Contains(agent.Entity))
+                        {
+                            bestDistanceSquared = distanceSquared;
+                            found = agent;
+                            any = true;
+                        }
+                    }
+                    while (map.TryGetNextValue(out agent, ref iterator));
+                }
+            }
+
+            return any;
+        }
+
         private static void InsertSorted(
             ref FixedList512Bytes<float2> positions, ref FixedList128Bytes<float> distances,
             float2 position, float distanceSquared, int capacity)

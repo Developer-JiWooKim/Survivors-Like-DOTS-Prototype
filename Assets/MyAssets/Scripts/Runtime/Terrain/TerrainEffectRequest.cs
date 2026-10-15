@@ -14,6 +14,9 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
 
         /// <summary>반경 안의 가연 타일에 불을 붙인다 (기획서 5.1 — 화염구가 점화원).</summary>
         Ignite = 2,
+
+        /// <summary>반경 안에 기름을 뿌린다 (기획서 5.1 — 기름통). 규칙은 <see cref="OilRules"/>.</summary>
+        Oil = 3,
     }
 
     /// <summary>

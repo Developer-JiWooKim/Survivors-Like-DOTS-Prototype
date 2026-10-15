@@ -22,8 +22,9 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
     /// 한 번에 만들어야 지형이 프레임에 얼마나 얹히는지 잴 수 있다. F 로는 확산을 기다려야 해서
     /// 측정 시점마다 불의 규모가 달라진다 — **같은 조건에서 재라**는 CLAUDE.md 4 장을 지키기 위한 장치다.
     ///
-    /// E·R 은 <see cref="TerrainEffects"/> 큐를 거친다 — 실제 무기가 쓸 경로를 그대로 쓴다.
-    /// F·G 는 그리드를 직접 고친다 (칠하기는 큐를 거칠 이유가 없다).
+    /// G·E·R·T 는 <see cref="TerrainEffects"/> 큐를 거친다 — 실제 무기가 쓸 경로를 그대로 쓴다.
+    /// G 는 원래 그리드를 직접 칠했으나, 기름통 무기가 들어오며 큐로 옮겼다 (규칙을 <see cref="OilRules"/> 한 곳에 두려고).
+    /// F 는 그리드를 직접 고친다 (한 칸 점화는 큐를 거칠 이유가 없다).
     ///
     /// 왜 Input Actions 에셋이 아니라 Keyboard 직접 읽기인가:
     /// 액션 에셋을 고치는 건 사용자 몫인데(CLAUDE.md 3.4), 무기가 들어오면 지워질 디버그 키 때문에
@@ -76,20 +77,20 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
             float2 playerPosition = SystemAPI.GetSingleton<PlayerPosition>().Value;
             int2 center = grid.ValueRO.CellOf(playerPosition);
 
-            if (pourOil)
-            {
-                PourOil(grid.ValueRO, center);
-            }
-
             if (ignite)
             {
                 Ignite(grid.ValueRO, center);
             }
 
-            // 감전·동결은 무기가 쓸 경로(효과 큐)를 그대로 쓴다. TerrainEffectSystem 이 같은 프레임에 처리한다.
-            if (shock || freeze || blaze)
+            // 기름·감전·동결은 무기가 쓸 경로(효과 큐)를 그대로 쓴다. TerrainEffectSystem 이 같은 프레임에 처리한다.
+            if (pourOil || shock || freeze || blaze)
             {
                 RefRW<TerrainEffects> effects = SystemAPI.GetSingletonRW<TerrainEffects>();
+
+                if (pourOil)
+                {
+                    effects.ValueRW.Request(center, TerrainEffectKind.Oil, OilBrushRadius);
+                }
 
                 if (shock)
                 {
@@ -104,34 +105,6 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
                 if (blaze)
                 {
                     effects.ValueRW.Request(center, TerrainEffectKind.Ignite, BlazeRadius);
-                }
-            }
-        }
-
-        private static void PourOil(TerrainGrid grid, int2 center)
-        {
-            for (int dy = -OilBrushRadius; dy <= OilBrushRadius; dy++)
-            {
-                for (int dx = -OilBrushRadius; dx <= OilBrushRadius; dx++)
-                {
-                    var cell = new int2(center.x + dx, center.y + dy);
-                    if (!grid.InBounds(cell) || dx * dx + dy * dy > OilBrushRadius * OilBrushRadius)
-                    {
-                        continue;
-                    }
-
-                    // 바위는 덮지 않는다. 벽에 기름이 발리면 확산 경계가 헷갈린다.
-                    int index = grid.IndexOf(cell);
-                    TileType existing = grid.Tiles[index].TypeValue;
-                    if (existing == TileType.Rock)
-                    {
-                        continue;
-                    }
-
-                    // 물 위에서는 기름이 뜬다 — 다 타도 물이 남는다 (ISSUE-012).
-                    // 앞으로 들어올 기름통 무기도 같은 규칙을 써야 한다.
-                    TileType poured = TileTypes.IsWaterLike(existing) ? TileType.OilOnWater : TileType.Oil;
-                    grid.Tiles[index] = TileData.Of(poured, 200);
                 }
             }
         }

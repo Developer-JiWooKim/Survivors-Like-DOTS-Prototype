@@ -66,6 +66,7 @@
   <Project Path="Unity.ScriptableBuildPipeline.csproj" />
   <Project Path="Unity.Transforms.csproj" />
   <Project Path="Unity.Entities.Build.csproj" />
+  <Project Path="Survivors.Tests.csproj" />
   <Project Path="Unity.InputSystem.TestFramework.csproj" />
   <Project Path="Unity.ShaderGraph.Utilities.csproj" />
   <Project Path="Unity.VisualScripting.Shared.Editor.csproj" />
@@ -79,7 +80,6 @@
   <Project Path="Unity.InternalAPIEngineBridge.ObjectDispatcher.Runtime.csproj" />
   <Project Path="Unity.Core.Editor.csproj" />
   <Project Path="Unity.Mathematics.Extensions.csproj" />
-  <Project Path="Survivors.Tests.csproj" />
   <Project Path="Unity.Entities.Graphics.Editor.csproj" />
   <Project Path="Unity.Transforms.Hybrid.csproj" />
   <Project Path="Survivors.Editor.csproj" />

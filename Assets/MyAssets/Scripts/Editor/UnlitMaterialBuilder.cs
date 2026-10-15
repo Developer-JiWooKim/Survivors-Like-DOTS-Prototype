@@ -44,6 +44,13 @@ namespace Assets.MyAssets.Scripts.Editor
             // 머티리얼을 타일 종류별로 나누지 않는 이유는 TileViewAuthoring 주석 참조.
             Create("TerrainTileQuad", new Color(0.26f, 0.21f, 0.15f, 1f));
 
+            // 착탄형 탄 (기름통·화염구). 실제 색은 쏠 때 무기별로 덮어쓴다 (LobbedShellLauncher.ColorOf).
+            // 여기 색은 프리팹을 인스펙터에서 볼 때의 기본값 — 기름 탄과 같은 진한 노랑.
+            Create("ShellQuad", new Color(1f, 0.85f, 0.2f, 1f));
+
+            // 전격 사슬의 낙뢰 선. 타일의 물(파랑)·감전 색 위에서도 보이도록 거의 흰 하늘색.
+            Create("LightningQuad", new Color(0.8f, 0.95f, 1f, 1f));
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }

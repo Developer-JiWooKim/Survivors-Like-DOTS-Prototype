@@ -119,7 +119,7 @@ namespace Assets.MyAssets.Scripts.Runtime.Weapon
             if (projectile.ExplosionRadius > 0f)
             {
                 // 폭발 중심은 탄 위치가 아니라 맞은 적의 위치 — 적 중심에서 퍼지는 게 눈으로 보기에 자연스럽다.
-                Explode(target.Position, projectile.ExplosionRadius, projectile.ExplosionDamage, target.Entity);
+                AreaDamage.Write(Enemies, target.Position, projectile.ExplosionRadius, projectile.ExplosionDamage, target.Entity, ref Writer);
             }
 
             if (projectile.PierceRemaining <= 0)
@@ -138,44 +138,6 @@ namespace Assets.MyAssets.Scripts.Runtime.Weapon
                 projectile.HitHistory.RemoveAt(0);
             }
             projectile.HitHistory.Add(target.Entity);
-        }
-
-        private void Explode(float2 center, float explosionRadius, float damage, Entity directHit)
-        {
-            int range = EnemySpatialHash.CellRangeFor(explosionRadius);
-            int2 centerCell = EnemySpatialHash.CellOf(center);
-
-            for (int y = -range; y <= range; y++)
-            {
-                for (int x = -range; x <= range; x++)
-                {
-                    int2 cell = centerCell + new int2(x, y);
-                    if (!Enemies.TryGetFirstValue(EnemySpatialHash.KeyOf(cell), out AgentRef enemy, out NativeParallelMultiHashMapIterator<int> iterator))
-                    {
-                        continue;
-                    }
-
-                    do
-                    {
-                        // 키 충돌로 섞여 든 다른 셀의 적을 거른다 — 안 그러면 한 적이 폭발 피해를 두 번 받는다.
-                        if (enemy.Entity == directHit || !EnemySpatialHash.IsInCell(enemy, cell))
-                        {
-                            continue;
-                        }
-
-                        float reach = explosionRadius + enemy.Radius;
-                        if (math.distancesq(center, enemy.Position) <= reach * reach)
-                        {
-                            Writer.Write(new DamageEvent
-                            {
-                                Target = enemy.Entity,
-                                Amount = damage,
-                            });
-                        }
-                    }
-                    while (Enemies.TryGetNextValue(out enemy, ref iterator));
-                }
-            }
         }
     }
 }

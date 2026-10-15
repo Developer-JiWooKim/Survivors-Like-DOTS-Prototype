@@ -36,6 +36,10 @@ Unity 6 DOTS 2D 뱀서라이크 — **발생한 이슈와 대응** 기록.
 | [013](#issue-013) | 2026-09-18 | M3 | 게임로직 | 바위를 **정면으로** 마주한 적이 우회하지 못하고 벽에 끼여 쌓임 (축 분리 미끄러짐의 한계) | ✅ 해결 (흐름장) | 2026-09-18 |
 | [014](#issue-014) | 2026-09-18 | M3 | 게임로직 | 흐름장 경로가 직선이 아님 — 바위가 없는 구간에서도 계단·우회 경로로 옴 (격자 거리 척도 문제) | ✅ 해결 (아이코널 거리 필드) | 2026-09-18 |
 | [015](#issue-015) | 2026-10-14 | DOTS 학습 | 툴링 | `unity-recompile.sh` exit 3 · `unity command` 타임아웃 — 다른 프로세스가 `127.0.0.1:7800` 을 잡고 있었음 | 🔄 우회 (재부팅) | 2026-10-15 |
+| [016](#issue-016) | 2026-10-15 | M3 | Unity | 게임 씬의 `TestSubScene.unity` 가 사라짐 — 학습 첫 커밋에서 학습용 서브씬으로 바뀌어 삭제됨 | ✅ 해결 (git 복원) | 2026-10-15 |
+| [017](#issue-017) | 2026-10-15 | 빌드 실측 | 빌드 | 첫 플레이어 빌드 실패 — 학습 코드(`Survivors.Study`)의 Burst 에러 BC1349 가 빌드에 포함됨 | ✅ 해결 (학습 어셈블리 에디터 전용) | 2026-10-15 |
+| [018](#issue-018) | 2026-10-15 | 빌드 실측 | 렌더링 | 빌드 실행 시 검은 화면 — 꺼 둔 SSAO 렌더러 기능의 리소스가 스트리핑되어 파이프라인 생성 실패 (ISSUE-005 의 후속) | ✅ 해결 (SSAO 삭제. 화면 확인은 사용자 대기) | 2026-10-15 |
+| [019](#issue-019) | 2026-10-15 | 빌드 실측 | 툴링 | `unity-check.sh` 가 에디터가 꺼져 있어도 "에디터 실행 중" 으로 오판 — Unity Hub CLI 서버(`unity.exe serve`)를 대소문자 무시로 잡음 | ✅ 해결 | 2026-10-15 |
 
 > 분류: `DOTS` / `성능` / `렌더링` / `빌드` / `툴링` / `Unity` / `게임로직` / `기타`
 
@@ -1150,3 +1154,244 @@ CLI 는 `127.0.0.1:7800` 으로 접속하는데, 같은 포트를 `127.0.0.1` �
   `127.0.0.1` 리스너의 소유자가 포트 파일의 PID 와 다르면 이 이슈다.
 - 파이프라인 패키지가 깔린 Unity 프로젝트를 **두 개 동시에 켜면** 재발할 수 있다. 다른 프로젝트 에디터를 닫고, 그래도 남아 있으면 그 PID 를 끝내거나 재부팅한다. 프로세스를 끄는 것은 사용자에게 맡긴다 (CLAUDE.md 3.1).
 - 원인을 추정으로 말할 때는 "추정" 이라고 밝힌다. 시도 1 은 추정을 사실처럼 이틀 동안 안내했다.
+
+---
+
+<a id="issue-016"></a>
+### ISSUE-016
+
+| | |
+|---|---|
+| **발생일시** | 2026-10-01 (발생) · 2026-10-15 (발견) |
+| **마일스톤** | DOTS 학습 → M3 복귀 |
+| **분류** | Unity |
+| **상태** | ✅ 해결 (git 에서 복원, 사용자가 에디터에서 정상 확인) |
+| **해결일** | 2026-10-15 |
+| **관련 작업** | [WorkLog 2026-10-15 (2)](WorkLog.md) |
+
+**증상**
+
+M3 로 돌아와 흐름장을 확인하려던 사용자가 "TestSubScene 이 사라진 것 같다" 고 알림. `Assets/MyAssets/Scenes/` 에 `TestScene.unity` 만 있었다.
+`TestScene.unity` 의 SubScene 컴포넌트는 여전히 `_SceneAsset: {guid: 6bbc170255c3a1341acb6fde3375358a}` 를 가리키는데, 프로젝트 안에 그 GUID 를 가진 에셋이 없었다.
+게임 엔티티(플레이어·적 스포너·풀·지형·벤치마크)가 전부 이 서브씬에서 베이크되므로 **게임이 통째로 안 돌아가는 상태**였다.
+
+**재현 조건**
+
+항상 (파일이 없음).
+
+**원인**
+
+DOTS 학습 첫 커밋 `a810e0c` (2026-10-01) 에서 사라졌다. git 은 이 변경을 다음과 같이 짝지었다:
+
+```
+Assets/MyAssets/Scenes/TestSubScene.unity       → DOTS_Study/Scenes/Study01_Sub.unity   (내용 일부 유사, 수정됨)
+Assets/MyAssets/Scenes/TestSubScene.unity.meta  → DOTS_Study/Scenes/Step01.unity.meta  (GUID 줄만 다름)
+```
+
+즉 학습용 씬을 만드는 과정에서 원래 TestSubScene 이 학습용 서브씬으로 바뀌었고, 그 `Study01_Sub.unity` 도 다음 커밋 `6246b32` 에서 지워졌다.
+.meta 의 GUID 가 바뀐 것으로 보아 Unity 의 이동/이름 변경(GUID 유지)은 아니다. 에디터에서 정확히 어떤 조작이었는지는 **확인하지 못했다** (덮어쓰기 저장 등으로 추정).
+학습 중에는 게임 씬을 열지 않아서 2 주 동안 몰랐다.
+
+**시도한 것과 결과**
+
+| # | 시도 | 결과 |
+|---|---|---|
+| 1 | `find Assets -name "*.unity"` | `Scenes/` 에 TestScene 만 존재 확인 |
+| 2 | `git log --all --name-status -- Assets/MyAssets/Scenes` | `a810e0c` 에서 `D TestSubScene.unity(.meta)`. 마지막 수정은 `0f55038` |
+| 3 | `git show --stat a810e0c` | 위 "원인" 의 짝짓기 확인 |
+| 4 | GUID `6bbc17…` 를 쓰는 다른 에셋이 있는지 `.meta` 전체 검색 | 없음 → 원래 GUID 로 복원해도 충돌하지 않는다 |
+| 5 | `git checkout 0f55038 -- TestSubScene.unity TestSubScene.unity.meta` | 복원. TestScene 의 참조 GUID 와 일치 |
+| 6 | 복원한 서브씬이 참조하는 GUID 15 개 존재 확인 | 프리팹 7 · Authoring 스크립트 7 존재. `0000…e000/f000` 은 Unity 내장 리소스 |
+
+**해결 방법**
+
+git 의 마지막 버전(`0f55038`)을 **원래 GUID 그대로** 되살렸다. 파일을 손으로 편집한 것이 아니라 커밋된 바이트 복원이므로 CLAUDE.md 3.4 의 ".unity/.meta 직접 편집 금지" 취지(YAML·GUID 깨짐 방지)에 어긋나지 않는다.
+씬을 새로 만들어 다시 배치하는 안보다 빠르고, 인스펙터 값(풀 크기·벤치마크 설정 등)이 그대로 돌아온다.
+
+**재발 방지책**
+
+- 학습·실험용 씬은 **새 씬을 만들어서** 쓰고, 게임 씬을 복제하거나 덮어쓰지 않는다.
+- 커밋 전에 `git status` 에서 `Assets/MyAssets/Scenes/` 아래 `D`(삭제) 가 있으면 멈추고 확인한다.
+- 세션 시작 점검(CLAUDE.md 0장)에서 게임 씬 두 개(`TestScene`, `TestSubScene`)가 있는지도 본다.
+
+---
+
+<a id="issue-017"></a>
+### ISSUE-017
+
+| | |
+|---|---|
+| **발생일시** | 2026-10-15 17:02 (첫 플레이어 빌드) |
+| **마일스톤** | 빌드 실측 (M3 완료 직후) |
+| **분류** | 빌드 |
+| **상태** | ✅ 해결 |
+| **해결일** | 2026-10-15 |
+| **관련 작업** | [WorkLog 2026-10-15 (5)](WorkLog.md) |
+
+**증상**
+
+`unity command build --target StandaloneWindows64` (릴리스, Mono) → `result: Failed`, 에러 3 건 / 경고 4 건, 148 초.
+
+```
+Burst error BC1349: Invalid argument. Expecting a string literal or a string.Format or a fixed string.
+ at Assets.MyAssets.DOTS_Study.Scripts.Step07.Step07MappingSystem.OnUpdate(...)
+UnityEditor.Build.BuildFailedException: Burst compiler failed running
+```
+
+**재현 조건**
+
+항상 (플레이어 빌드 시). 에디터 플레이 모드에서는 드러나지 않았다.
+
+**원인**
+
+`Assets/MyAssets/DOTS_Study/Scripts/Step07/Step07MappingSystem.cs:79` — `[BurstCompile]` 인 `OnUpdate` 안의 `UnityEngine.Debug.Log(compareCount);` (int 인자).
+Burst 는 `Debug.Log` 에 문자열 리터럴 / `string.Format` / FixedString 만 허용한다.
+
+- **에디터에서 안 보인 이유 (추정)**: 에디터 Burst 는 JIT 로 메서드마다 컴파일하고, 실패하면 그 메서드만 매니지드로 돌린다. 플레이어 빌드는 AOT 로 전부 한 번에 컴파일해서 실패가 곧 빌드 실패다.
+- **학습 코드가 빌드에 들어간 이유**: 학습 어셈블리 `Survivors.Study` 의 asmdef 가 `includePlatforms: []` (= 모든 플랫폼). 학습 씬은 빌드 목록에 없지만 **어셈블리는 씬과 무관하게 컴파일·Burst 대상**이고, ISystem 은 씬이 없어도 월드에 자동 등록된다.
+  → 고치지 않더라도 빌드에서 학습 시스템들이 게임 월드에 함께 등록될 수 있다는 뜻 (RequireForUpdate 로 대부분 잠들겠지만 측정 조건이 오염된다).
+
+**시도한 것과 결과**
+
+| # | 시도 | 결과 |
+|---|---|---|
+| 1 | 릴리스 빌드 | 위 에러로 실패 |
+| 2 | 선택지 제시 → 사용자 결정: **학습 어셈블리를 에디터 전용으로** (`Survivors.Study.asmdef` `includePlatforms: ["Editor"]`) | 재컴파일 성공 → 릴리스 빌드 **성공** (81 초, 에러 0) · 개발 빌드 **성공** (94 초, 에러 0) |
+
+버린 안: ① 해당 줄만 고침 (`Debug.Log($"{compareCount}")`) — 빌드는 되지만 학습 시스템이 계속 빌드 월드에 들어간다. 다른 학습 코드에 같은 문제가 더 있는지도 빌드해 봐야 안다 ② 학습 폴더 삭제 — 면접용 학습 기록이 가리키는 코드가 사라진다.
+
+**해결 방법**
+
+학습 어셈블리를 에디터 전용으로 바꿨다. 학습 코드는 한 줄도 고치지 않았고 에디터에서는 그대로 돈다.
+이후 사용자가 직접 `Step07MappingSystem.cs` 의 `compareCount` 세 줄(선언·증가·`Debug.Log`)을 주석 처리했다 — 에디터에서도 Burst 컴파일 실패가 사라진다. 두 조치가 함께 들어가 있다.
+학습 코드는 처음부터 게임과 서로 참조하지 않게 분리해 둔 것이라(CLAUDE.md 0.1) "빌드에 안 들어간다" 가 원래 의도에도 맞다.
+덤으로 빌드 측정에 학습 시스템이 섞이지 않는다.
+
+남은 경고 4 건(릴리스)은 무해: 파이프라인 런타임 설정 없음(빌드에서 비활성 — 의도대로), 디버그용 셰이더 2 개 제거, TMP 셰이더의 폐기된 pragma.
+
+**재발 방지책**
+
+- 실험·학습용 어셈블리는 **만들 때부터 `includePlatforms: ["Editor"]`** 로 둔다.
+- 에디터 플레이에서 문제가 없어도 **Burst 는 플레이어 빌드(AOT)에서야 전부 컴파일된다.** 큰 기능을 넣은 뒤에는 빌드를 한 번 돌려 본다 — 이번엔 마지막 작업에 와서야 처음 빌드했다.
+- 참고: 에디터 플레이 중에는 학습 시스템도 게임 월드에 자동 등록된다 (에디터 전용이어도 마찬가지). 학습 컴포넌트가 없어 `RequireForUpdate` 로 잠들어 있으므로 지금까지의 에디터 측정에 끼친 영향은 무시할 수준으로 본다 (추정).
+
+---
+
+<a id="issue-018"></a>
+### ISSUE-018
+
+| | |
+|---|---|
+| **발생일시** | 2026-10-15 17:20 (릴리스 빌드 첫 실행) |
+| **마일스톤** | 빌드 실측 |
+| **분류** | 렌더링 |
+| **상태** | ✅ 해결 (로그상 해결 확인. 화면에 그려지는지는 사용자 확인 대기) |
+| **해결일** | 2026-10-15 |
+| **관련 작업** | [WorkLog 2026-10-15 (5)](WorkLog.md) · [ISSUE-005](#issue-005) |
+
+**증상**
+
+사용자: "검은화면만 뜨고 아무것도 안보이는데?" — `Builds/Release/Survivors.exe` 실행 시 화면 전체가 검다.
+
+`%USERPROFILE%/AppData/LocalLow/DefaultCompany/Survivors-Like-DOTS-Game/Player.log` (17:21, 11.7 MB, "Exception" 55,279 줄):
+```
+Couldn't find the required resources for the ScreenSpaceAmbientOcclusion render feature. If this exception appears
+in the Player, make sure at least one ScreenSpaceAmbientOcclusion render feature is enabled or adjust your stripping settings.
+NullReferenceException: Object reference not set to an instance of an object
+  at UnityEngine.Rendering.Universal.ScreenSpaceAmbientOcclusion.TryPrepareResources ()
+  at UnityEngine.Rendering.Universal.ScreenSpaceAmbientOcclusion.Create ()
+  at UnityEngine.Rendering.Universal.ScriptableRenderer..ctor (...)
+  ...
+  at UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset.CreatePipeline ()
+
+Exception: Blitter is already initialized. ...   ← 7,906 회 (매 프레임 파이프라인 재생성 시도)
+```
+게임 쪽은 정상 진행 중이었다 — 같은 로그에 서브씬 스트리밍 성공 (`Streamed scene with 199ms latency ... 6bbc1702...entities`, TestSubScene GUID).
+
+**재현 조건**
+
+항상 (플레이어 빌드). 에디터는 정상.
+
+**원인**
+
+1. ISSUE-005 (2026-09-17) 에서 `PC_Renderer` 의 SSAO 렌더러 기능을 **삭제하지 않고 끄기만** 했다 (`m_Active: 0`, 사용자 결정 — 되돌리기 쉽게).
+2. URP 는 빌드 시 **켜진 SSAO 기능이 하나도 없으면 SSAO 셰이더·리소스를 스트리핑**한다 (`m_StripUnusedVariants: 1`).
+3. 그런데 꺼진 기능도 렌더러 생성자에서 `Create()` 가 불린다 → 리소스가 없어 NRE → 렌더러 생성 실패 → 파이프라인 생성 실패.
+4. 파이프라인이 매 프레임 다시 만들어지려다 Blitter 중복 초기화 예외 → 아무것도 그려지지 않음.
+
+에디터는 스트리핑을 하지 않아 리소스가 있으므로 정상이었다. 스탠드얼론은 품질 단계 PC(1) → `PC_RPAsset` → `PC_Renderer` 를 쓴다 (`Mobile_Renderer` 는 기능 없음).
+
+**시도한 것과 결과**
+
+| # | 시도 | 결과 |
+|---|---|---|
+| 1 | Player.log 확인 (수정 시각 17:21 = 방금 실행) | 위 원인 특정 |
+| 2 | 선택지 제시 → 사용자 결정: **SSAO 기능 삭제** (ISSUE-005 의 "끄기만" 결정을 바꿈) | — |
+| 3 | `RendererFeatureSettings.cs` 를 "끄기/켜기" 메뉴에서 **"SSAO 삭제"** 메뉴로 교체. `SerializedObject` 로 `m_RendererFeatures` 와 짝인 `m_RendererFeatureMap` 을 같은 인덱스에서 함께 지우고, 서브 에셋도 `RemoveObjectFromAsset` 으로 제거 | `unity-recompile.sh` exit 3 — 에디터는 측정을 위해 닫혀 있었다 → 배치모드로 전환 |
+| 4 | `unity-check.sh` | exit 2 "에디터 실행 중" **오판** → [ISSUE-019](#issue-019) 로 분리해 고침 |
+| 5 | 배치모드 `-executeMethod ...RendererFeatureSettings.RemoveSsao` | 성공. diff: 기능 목록 `[]`, 맵 비움, `ScreenSpaceAmbientOcclusion` 서브 에셋 블록 삭제 — 의도한 것만 바뀜 |
+| 6 | 배치모드 `-executeMethod ...CI.BuildPlayers` (새 진입점, 릴리스 + 개발) | 둘 다 성공 (74 초 / 78 초, 에러 0) |
+| 7 | **Claude 가 직접 확인**: 릴리스 빌드를 640×360 창(`-screen-fullscreen 0`)으로 15 초 실행 → `-logFile` 읽기 | **Exception 0 건**, SSAO 리소스 경고 없음, 서브씬 스트리밍 성공, Direct3D 11 / GTX 1660 |
+
+**해결 방법**
+
+`PC_Renderer` 에서 SSAO 렌더러 기능을 **삭제**했다. 렌더러 기능 0 개가 됐다.
+되돌릴 때 필요한 원래 설정값 (템플릿 기본값): `AOMethod 0, Downsample 0, AfterOpaque 0, Source 1, NormalSamples 1, Intensity 0.4, DirectLightingStrength 0.25, Radius 0.3, Samples 1, BlurQuality 0, Falloff 100`.
+
+함께 생긴 diff 두 개는 **빌드 중 URP 가 자동으로 다시 쓴 값**이라 그대로 둔다: `PC_RPAsset.asset` 의 셰이더 사전 필터링 값들(`m_PrefilteringModeScreenSpaceOcclusion: 1 → 0` 등 — 이번 원인인 SSAO 스트리핑이 바로 이 값), `UniversalRenderPipelineGlobalSettings.asset` 의 런타임 설정 목록.
+
+**재발 방지책**
+
+- **"끄기만 해 두면 되돌리기 쉽다" 는 빌드 스트리핑과 충돌할 수 있다.** 렌더러 기능은 꺼져 있어도 생성되고, 스트리퍼는 "켜진 것" 만 남긴다. 안 쓰는 렌더러 기능은 지운다.
+- 렌더 설정을 바꾸면 **빌드를 한 번 띄워 Player.log 를 본다.** 에디터는 스트리핑을 하지 않아 이런 문제를 원리적으로 못 잡는다.
+- 빌드 확인은 Claude 가 `-screen-fullscreen 0 -screen-width 640 -screen-height 360 -logFile <경로>` 로 창 모드 실행 → 로그 확인까지 할 수 있다. 화면 내용만 사용자가 본다.
+
+---
+
+<a id="issue-019"></a>
+### ISSUE-019
+
+| | |
+|---|---|
+| **발생일시** | 2026-10-15 17:25 (ISSUE-018 대응 중) |
+| **마일스톤** | 빌드 실측 |
+| **분류** | 툴링 |
+| **상태** | ✅ 해결 |
+| **해결일** | 2026-10-15 |
+| **관련 작업** | [ISSUE-018](#issue-018) |
+
+**증상**
+
+에디터를 닫은 상태에서 `bash Tools/unity-check.sh` → exit 2:
+```
+[!] Unity 에디터가 실행 중입니다.
+    프로젝트 락 때문에 CLI 를 실행할 수 없습니다. 에디터를 닫고 다시 시도하세요.
+```
+동시에 `unity-recompile.sh` 는 exit 3 ("준비된 Unity 에디터를 찾지 못했습니다") — 두 스크립트가 서로 반대로 말했다.
+
+**재현 조건**
+
+Unity Hub 의 CLI 서버가 상주하는 동안 항상. (`unity command` 를 한 번이라도 쓰면 뜬다.)
+
+**원인**
+
+`Tools/_common.sh` 의 `assert_no_editor_lock` 이 `tasklist | grep -qi "^Unity\.exe"` — **대소문자 무시**.
+남아 있던 프로세스는 에디터가 아니라 `"C:\Program Files\Unity Hub\resources\unity.exe" serve` (PID 12108, 27 MB, 소문자 `unity.exe`) 였다.
+`Temp/UnityLockfile` 도 없었다 (실제 프로젝트 락 없음).
+
+**시도한 것과 결과**
+
+| # | 시도 | 결과 |
+|---|---|---|
+| 1 | `tasklist` → `unity.exe 12108` 확인, 메모리 27 MB 로 에디터가 아님을 의심 | — |
+| 2 | `wmic process where ProcessId=12108 get ExecutablePath,CommandLine` | Unity Hub CLI 서버로 확정 |
+| 3 | 프로세스는 건드리지 않고(CLAUDE.md 3.1) 검사를 **대소문자 구분**(`grep -q "^Unity\.exe"`)으로 변경 | `unity-check.sh` 통과, 이후 배치모드 정상 |
+
+**해결 방법**
+
+`assert_no_editor_lock` 을 대소문자 구분으로 바꿨다. 에디터 실행 파일은 `Unity.exe`, Hub CLI 는 `unity.exe`.
+
+**재발 방지책**
+
+- 프로세스 이름으로 판정할 때는 **경로나 대소문자까지** 본다. 같은 이름의 다른 도구가 생길 수 있다 (이번엔 2026-09 이후에 들어온 Unity CLI).
+- 두 검증 스크립트의 판정이 엇갈리면 한쪽이 틀린 것이다 — 실제 상태(`Temp/UnityLockfile`, 프로세스 경로)를 먼저 본다.

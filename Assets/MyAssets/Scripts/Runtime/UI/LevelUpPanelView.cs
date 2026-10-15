@@ -104,6 +104,9 @@ namespace Assets.MyAssets.Scripts.Runtime.UI
                 UpgradeType.Spread => "Spread +15°",
                 UpgradeType.Pierce => "Pierce +1",
                 UpgradeType.Explosion => "Explosion (unlock / radius +0.5)",
+                UpgradeType.AcquireOilBarrel => "NEW WEAPON: Oil Barrel",
+                UpgradeType.AcquireFireball => "NEW WEAPON: Fireball",
+                UpgradeType.AcquireChainLightning => "NEW WEAPON: Chain Lightning",
                 _ => upgrade.ToString(),
             };
         }

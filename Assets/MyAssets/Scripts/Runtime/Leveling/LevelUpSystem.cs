@@ -72,11 +72,23 @@ namespace Assets.MyAssets.Scripts.Runtime.Leveling
                 experience.ValueRW.Level++;
                 experience.ValueRW.XpToNext = PlayerExperience.RequiredFor(experience.ValueRO.Level);
 
-                // ShardWeapon 은 메인 스레드에서만 바뀌므로 읽어도 기다릴 잡이 없다.
-                ShardWeapon weapon = SystemAPI.GetSingleton<ShardWeapon>();
+                // 무기 컴포넌트는 메인 스레드에서만 바뀌므로 읽어도 기다릴 잡이 없다.
+                Entity player = SystemAPI.GetSingletonEntity<ShardWeapon>();
+                var context = new UpgradeContext
+                {
+                    Shard = SystemAPI.GetComponent<ShardWeapon>(player),
+
+                    // 플레이어에 OilBarrelAuthoring 을 안 붙였으면 아예 후보에 올리지 않는다.
+                    CanAcquireOilBarrel = SystemAPI.HasComponent<OilBarrelWeapon>(player)
+                                          && !SystemAPI.IsComponentEnabled<OilBarrelWeapon>(player),
+                    CanAcquireFireball = SystemAPI.HasComponent<FireballWeapon>(player)
+                                         && !SystemAPI.IsComponentEnabled<FireballWeapon>(player),
+                    CanAcquireChainLightning = SystemAPI.HasComponent<ChainLightningWeapon>(player)
+                                               && !SystemAPI.IsComponentEnabled<ChainLightningWeapon>(player),
+                };
 
                 RefRW<LevelUpState> levelUp = SystemAPI.GetComponentRW<LevelUpState>(state.SystemHandle);
-                Offer(ref levelUp.ValueRW, weapon);
+                Offer(ref levelUp.ValueRW, context);
 
                 runState.ValueRW.Phase = RunPhase.Paused;
                 Debug.Log($"[LevelUp] Lv.{experience.ValueRO.Level} — 선택 대기");
@@ -87,12 +99,12 @@ namespace Assets.MyAssets.Scripts.Runtime.Leveling
         /// <summary>
         /// 최대치가 아닌 강화 중 서로 다른 3 개를 무작위로 고른다 (부분 Fisher–Yates 셔플).
         /// </summary>
-        private static void Offer(ref LevelUpState levelUp, in ShardWeapon weapon)
+        private static void Offer(ref LevelUpState levelUp, in UpgradeContext context)
         {
             var pool = new FixedList32Bytes<byte>();
             for (int i = 0; i < UpgradeTable.Count; i++)
             {
-                if (!UpgradeTable.IsMaxed((UpgradeType)i, weapon))
+                if (!UpgradeTable.IsUnavailable((UpgradeType)i, context))
                 {
                     pool.Add((byte)i);
                 }

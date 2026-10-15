@@ -8,7 +8,7 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
 {
     /// <summary>
     /// 지형 효과 요청(<see cref="TerrainEffects"/>)을 모아 그리드에 적용한다.
-    /// 감전은 flood fill, 동결·점화는 반경 칠하기.
+    /// 감전은 flood fill, 동결·점화·기름은 반경 칠하기.
     ///
     /// **메인 스레드에서 돈다.** flood fill 은 한 요청이 수천 칸을 건드리므로 병렬로 나눌 수 없고,
     /// 나눌 이유도 없다 — 요청은 프레임당 많아야 수십 건이다.
@@ -106,6 +106,10 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
                     case TerrainEffectKind.Ignite:
                         ApplyIgnite(grid, request);
                         break;
+
+                    case TerrainEffectKind.Oil:
+                        ApplyOil(grid, request);
+                        break;
                 }
             }
         }
@@ -129,8 +133,11 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
             // 반경 루프를 종류마다 되풀이하는 이유:
             // 공통 루프 + 콜백으로 묶으려면 델리게이트가 필요한데 **Burst 는 매니지드 델리게이트를 못 쓴다.**
             // 루프 자체는 열 줄이 안 되므로 반복을 감수하고 Burst 를 지킨다.
+            // 루프 범위는 올림한 정수, 원 판정은 실수 반경으로 한다. 판정까지 올림하면 화염구 반경 1.5 가
+            // 2 칸 원이 되어 착탄 피해 범위(1.5)보다 넓게 불이 붙는다. 정수 반경(디버그 키 3·30)은 결과가 같다.
             int radius = (int)math.ceil(request.Radius / TerrainGrid.TileSize);
-            int radiusSq = radius * radius;
+            float radiusInTiles = request.Radius / TerrainGrid.TileSize;
+            float radiusSq = radiusInTiles * radiusInTiles;
 
             for (int dy = -radius; dy <= radius; dy++)
             {
@@ -155,7 +162,8 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
         private static void ApplyIgnite(TerrainGrid grid, in TerrainEffectRequest request)
         {
             int radius = (int)math.ceil(request.Radius / TerrainGrid.TileSize);
-            int radiusSq = radius * radius;
+            float radiusInTiles = request.Radius / TerrainGrid.TileSize;
+            float radiusSq = radiusInTiles * radiusInTiles;
 
             for (int dy = -radius; dy <= radius; dy++)
             {
@@ -176,6 +184,32 @@ namespace Assets.MyAssets.Scripts.Runtime.Terrain
 
                     tile.State |= (byte)TileStateFlags.Burning;
                     grid.Tiles[index] = tile;
+                }
+            }
+        }
+
+        /// <summary>반경 안에 기름을 뿌린다 (기획서 5.1 — 기름통).</summary>
+        private static void ApplyOil(TerrainGrid grid, in TerrainEffectRequest request)
+        {
+            int radius = (int)math.ceil(request.Radius / TerrainGrid.TileSize);
+            float radiusInTiles = request.Radius / TerrainGrid.TileSize;
+            float radiusSq = radiusInTiles * radiusInTiles;
+
+            for (int dy = -radius; dy <= radius; dy++)
+            {
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    var cell = new int2(request.Cell.x + dx, request.Cell.y + dy);
+                    if (dx * dx + dy * dy > radiusSq || !grid.InBounds(cell))
+                    {
+                        continue;
+                    }
+
+                    int index = grid.IndexOf(cell);
+                    if (OilRules.TryPour(grid.Tiles[index], OilRules.DefaultFuel, out TileData poured))
+                    {
+                        grid.Tiles[index] = poured;
+                    }
                 }
             }
         }

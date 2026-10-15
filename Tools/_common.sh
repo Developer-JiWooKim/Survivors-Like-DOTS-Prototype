@@ -142,8 +142,10 @@ UNITY="$(_find_unity)" || exit 3
 # Unity 는 한 프로젝트를 두 인스턴스가 열 수 없다. 에디터가 켜져 있으면 batchmode 가
 # 락 획득에 실패하는데 에러 메시지가 불친절해서 여기서 먼저 걸러준다.
 # 주의: 다른 프로젝트를 열어둔 Unity 도 여기에 걸린다. 오탐이지만 안전한 쪽이다.
+# 대소문자를 구분한다 (ISSUE-019): Unity Hub 의 CLI 서버가 소문자 "unity.exe serve" 로 상주하는데,
+# -i 로 찾으면 에디터가 꺼져 있어도 걸려 배치모드를 영영 못 돌린다. 에디터 실행 파일은 "Unity.exe".
 assert_no_editor_lock() {
-  if tasklist 2>/dev/null | grep -qi "^Unity\.exe"; then
+  if tasklist 2>/dev/null | grep -q "^Unity\.exe"; then
     echo "[!] Unity 에디터가 실행 중입니다."
     echo "    프로젝트 락 때문에 CLI 를 실행할 수 없습니다. 에디터를 닫고 다시 시도하세요."
     exit 2

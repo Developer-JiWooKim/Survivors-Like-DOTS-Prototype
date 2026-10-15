@@ -12,7 +12,9 @@
         "Unity.Scenes",
         "Unity.InputSystem"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

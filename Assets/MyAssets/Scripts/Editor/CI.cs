@@ -32,5 +32,35 @@ namespace Assets.MyAssets.Scripts.Editor
             Debug.Log("[CI] 컴파일 성공");
             EditorApplication.Exit(0);
         }
+
+        /// <summary>
+        /// 빌드 실측용 플레이어 빌드 (릴리스 + 개발). 성공 0 / 실패 1.
+        ///
+        /// 왜 코드로 두나: 측정 조건의 일부가 빌드 옵션이다. 메뉴로 빌드하면 "그때 개발 빌드였나" 를 기억에 의존한다.
+        /// 씬 목록·해상도·백엔드는 ProjectSettings 에 있으므로 여기서는 출력 경로와 옵션만 정한다.
+        /// 에디터가 켜져 있으면 <c>unity command build</c> 로 같은 일을 할 수 있다 (2026-10-15 첫 빌드는 그쪽).
+        /// </summary>
+        public static void BuildPlayers()
+        {
+            bool ok = Build("Builds/Release/Survivors.exe", BuildOptions.None)
+                      && Build("Builds/Development/Survivors.exe", BuildOptions.Development);
+            EditorApplication.Exit(ok ? 0 : 1);
+        }
+
+        private static bool Build(string outputPath, BuildOptions options)
+        {
+            var buildOptions = new BuildPlayerOptions
+            {
+                scenes = System.Array.ConvertAll(EditorBuildSettings.scenes, s => s.path),
+                locationPathName = outputPath,
+                target = BuildTarget.StandaloneWindows64,
+                options = options,
+            };
+
+            UnityEditor.Build.Reporting.BuildReport report = BuildPipeline.BuildPlayer(buildOptions);
+            UnityEditor.Build.Reporting.BuildSummary summary = report.summary;
+            Debug.Log($"[CI] 빌드 {outputPath} ({options}) — {summary.result}, 에러 {summary.totalErrors}, 경고 {summary.totalWarnings}, {summary.totalTime.TotalSeconds:F0} 초");
+            return summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded;
+        }
     }
 }

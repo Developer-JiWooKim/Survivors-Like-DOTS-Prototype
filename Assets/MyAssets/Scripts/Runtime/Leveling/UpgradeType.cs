@@ -3,8 +3,10 @@ using Assets.MyAssets.Scripts.Runtime.Weapon;
 namespace Assets.MyAssets.Scripts.Runtime.Leveling
 {
     /// <summary>
-    /// M1 레벨업 선택지. 무기·패시브 체계(기획서 5장)가 들어오는 M3 에서 교체한다.
-    /// 수치는 <see cref="UpgradeTable"/> 에 모아 둔다.
+    /// 레벨업 선택지. 수치는 <see cref="UpgradeTable"/> 에 모아 둔다.
+    ///
+    /// 기획서 5.2~5.3 의 진화·패시브 체계는 M4 범위라 넣지 않는다 (2026-10-15 범위 결정).
+    /// M3 에서는 M1 강화에 **무기 획득** 카드만 더한다 — 얻은 무기는 레벨이 없다 (같은 날 사용자 결정).
     /// </summary>
     public enum UpgradeType : byte
     {
@@ -21,6 +23,28 @@ namespace Assets.MyAssets.Scripts.Runtime.Leveling
         Spread,
         Pierce,
         Explosion,
+
+        // 무기 획득 (2026-10-15 추가 — M3 무기 3 종). 이미 가졌으면 후보에서 빠진다.
+        AcquireOilBarrel,
+        AcquireFireball,
+        AcquireChainLightning,
+    }
+
+    /// <summary>
+    /// 레벨업 후보를 거를 때 보는 플레이어 상태. 시스템이 모아서 넘긴다.
+    /// </summary>
+    public struct UpgradeContext
+    {
+        public ShardWeapon Shard;
+
+        /// <summary>기름통 컴포넌트가 있고 아직 꺼져 있다 (= 획득 전).</summary>
+        public bool CanAcquireOilBarrel;
+
+        /// <summary>화염구 컴포넌트가 있고 아직 꺼져 있다 (= 획득 전).</summary>
+        public bool CanAcquireFireball;
+
+        /// <summary>전격 사슬 컴포넌트가 있고 아직 꺼져 있다 (= 획득 전).</summary>
+        public bool CanAcquireChainLightning;
     }
 
     /// <summary>
@@ -28,7 +52,7 @@ namespace Assets.MyAssets.Scripts.Runtime.Leveling
     /// </summary>
     public static class UpgradeTable
     {
-        public const int Count = 10;
+        public const int Count = 13;
 
         /// <summary>파편탄 피해 배율 (+20%).</summary>
         public const float ShardDamageMultiplier = 1.2f;
@@ -64,11 +88,12 @@ namespace Assets.MyAssets.Scripts.Runtime.Leveling
         public const float MaxExplosionRadius = 3f;
 
         /// <summary>
-        /// 이미 최대치라 더 고를 의미가 없는 선택지인지. 레벨업 후보에서 뺀다.
+        /// 지금 고를 의미가 없는 선택지인지 (이미 최대치이거나 이미 가진 무기). 레벨업 후보에서 뺀다.
         /// 수치 강화 5 종은 상한이 없어 항상 후보이므로, 후보가 3 개 미만이 되는 일은 없다.
         /// </summary>
-        public static bool IsMaxed(UpgradeType upgrade, in ShardWeapon weapon)
+        public static bool IsUnavailable(UpgradeType upgrade, in UpgradeContext context)
         {
+            ShardWeapon weapon = context.Shard;
             return upgrade switch
             {
                 UpgradeType.TargetCount => weapon.TargetCount >= MaxTargetCount,
@@ -76,6 +101,9 @@ namespace Assets.MyAssets.Scripts.Runtime.Leveling
                 UpgradeType.Spread => weapon.SpreadDegrees >= MaxSpreadDegrees,
                 UpgradeType.Pierce => weapon.Pierce >= MaxPierce,
                 UpgradeType.Explosion => weapon.ExplosionRadius >= MaxExplosionRadius,
+                UpgradeType.AcquireOilBarrel => !context.CanAcquireOilBarrel,
+                UpgradeType.AcquireFireball => !context.CanAcquireFireball,
+                UpgradeType.AcquireChainLightning => !context.CanAcquireChainLightning,
                 _ => false,
             };
         }

@@ -167,6 +167,69 @@ namespace Assets.MyAssets.Scripts.Tests.Spatial
             Assert.IsFalse(SpatialQueries.TryFindOverlap(_map, query, 0.1f, ref exclude, out _));
         }
 
+        // ---------------------------------------------------------------- 제외 목록이 있는 가장 가까운 적 (전격 사슬)
+
+        [Test]
+        public void TryFindNearestExcluding_MatchesBruteForce()
+        {
+            const float range = 4f;
+            FillRandom(seed: 3, agentCount: 3000);
+
+            var random = Random.CreateFromIndex(11);
+            for (int trial = 0; trial < 500; trial++)
+            {
+                float2 origin = random.NextFloat2(-WorldHalfExtent, WorldHalfExtent);
+
+                // 무작위로 몇 마리를 이미 맞은 것으로 친다
+                var exclude = new FixedList128Bytes<Entity>();
+                for (int i = 0; i < 5; i++)
+                {
+                    exclude.Add(_agents[random.NextInt(_agents.Count)].Entity);
+                }
+
+                bool found = SpatialQueries.TryFindNearestExcluding(_map, origin, range, ref exclude, out AgentRef hit);
+
+                float bestExpected = float.MaxValue;
+                foreach (AgentRef agent in _agents)
+                {
+                    float d = math.distance(origin, agent.Position);
+                    if (d <= range && !exclude.Contains(agent.Entity))
+                    {
+                        bestExpected = math.min(bestExpected, d);
+                    }
+                }
+
+                Assert.AreEqual(bestExpected < float.MaxValue, found, $"trial {trial}: 찾음 여부가 다르다");
+                if (found)
+                {
+                    Assert.AreEqual(bestExpected, math.distance(origin, hit.Position), 1e-4f, $"trial {trial}: 가장 가까운 적이 아니다");
+                    Assert.IsFalse(exclude.Contains(hit.Entity), $"trial {trial}: 제외한 적을 돌려줬다");
+                }
+            }
+        }
+
+        [Test]
+        public void TryFindNearestExcluding_SkipsAlreadyHitEvenIfCloser()
+        {
+            AgentRef near = Add(new float2(1f, 0f));
+            AgentRef far = Add(new float2(3f, 0f));
+
+            var exclude = new FixedList128Bytes<Entity>();
+            exclude.Add(near.Entity);
+
+            Assert.IsTrue(SpatialQueries.TryFindNearestExcluding(_map, float2.zero, 4f, ref exclude, out AgentRef hit));
+            Assert.AreEqual(far.Entity, hit.Entity, "이미 맞은 적으로 되돌아가면 사슬이 두 적 사이를 왕복한다");
+        }
+
+        [Test]
+        public void TryFindNearestExcluding_IgnoresOutOfRange()
+        {
+            Add(new float2(4.5f, 0f));
+
+            var none = new FixedList128Bytes<Entity>();
+            Assert.IsFalse(SpatialQueries.TryFindNearestExcluding(_map, float2.zero, 4f, ref none, out _));
+        }
+
         // ---------------------------------------------------------------- 도우미
 
         private AgentRef Add(float2 position, float radius = EnemyRadius)

@@ -76,3 +76,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# 플레이어 빌드 출력 (빌드 실측용, 2026-10-15)
+/Builds/

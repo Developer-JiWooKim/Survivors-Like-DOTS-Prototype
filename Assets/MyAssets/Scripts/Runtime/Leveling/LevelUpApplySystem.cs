@@ -113,6 +113,31 @@ namespace Assets.MyAssets.Scripts.Runtime.Leveling
                     weapon.ValueRW.ExplosionRadius = radius;
                     break;
                 }
+                case UpgradeType.AcquireOilBarrel:
+                {
+                    // 컴포넌트는 처음부터 꺼진 채 붙어 있다 — 켜기만 하면 구조적 변경 없이 무기가 생긴다.
+                    // 쿨다운 0 = 얻자마자 첫 발을 던진다 (고른 결과가 바로 보이게).
+                    RefRW<OilBarrelWeapon> weapon = SystemAPI.GetComponentRW<OilBarrelWeapon>(player);
+                    weapon.ValueRW.Cooldown = 0f;
+                    SystemAPI.SetComponentEnabled<OilBarrelWeapon>(player, true);
+                    break;
+                }
+                case UpgradeType.AcquireFireball:
+                {
+                    // 기름통과 같은 방식.
+                    RefRW<FireballWeapon> weapon = SystemAPI.GetComponentRW<FireballWeapon>(player);
+                    weapon.ValueRW.Cooldown = 0f;
+                    SystemAPI.SetComponentEnabled<FireballWeapon>(player, true);
+                    break;
+                }
+                case UpgradeType.AcquireChainLightning:
+                {
+                    // 기름통과 같은 방식.
+                    RefRW<ChainLightningWeapon> weapon = SystemAPI.GetComponentRW<ChainLightningWeapon>(player);
+                    weapon.ValueRW.Cooldown = 0f;
+                    SystemAPI.SetComponentEnabled<ChainLightningWeapon>(player, true);
+                    break;
+                }
                 case UpgradeType.MaxHealth:
                 {
                     RefRW<Health> health = SystemAPI.GetComponentRW<Health>(player);
